@@ -15,10 +15,10 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ```clj
 ;; Fetching user account on remote server
 (as-> "@jahfer@mastodon.social" $
-  (ap/parse-account $)
+  (activitypub/parse-account $)
   (map $ [:domain :username])
   (apply webfinger/fetch-user-id $)
-  (ap/fetch-user $)
+  (activitypub/fetch-user $)
   (select-keys $ ["followers" "following" "inbox" "outbox"
                   "endpoints" "publicKey" "summary" "attachment"
                   "name" "preferredUsername" "icon" "published"]))
