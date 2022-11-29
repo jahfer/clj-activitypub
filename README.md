@@ -38,3 +38,8 @@
 ```bash
 $ clj -X:test
 ```
+
+#### Reference
+- https://www.w3.org/TR/activitypub/
+- https://www.w3.org/TR/activitystreams-core/
+- https://www.w3.org/ns/activitystreams#Public
