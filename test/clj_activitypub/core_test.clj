@@ -39,3 +39,7 @@
               "Another" 123
               "Signature" "keyId=\"https://example.com/users/jahfer\",headers=\"(request-target) host date digest\",signature=\"CFrLNZJNvo0/w94nnL29m0zZpIgqKRuv4QhRQ2HSXBf1AB3Y4OfdUifwlKwwT9RK8fibOkvWUdut8XD8OE82gMGVlZ6WpmiYt8OFo4lKpkxJxriGX0uRP0UyO4GZqgqBC1peW7LTOFfjwjYutwxtrB9gl3me8YPN5GhnLnwVkh1k9deYlqJsDRChPmUVnPwnv8lYdK9igBLrJWd3o0BhJVtD8gV2XX/5TGxjFvkgBVlpzVF9HFJwGLTaz0g0Xb4ny8KOn6CmLPb37EOTc8YABv0TbtqVDXlTygmFyJUu/19dOaOrIBCCKQkjOgVLYs4M4YMt+4Hc6ri/D3xr3CGssA==\"" 
               "Digest" "sha-256=wFNeS+K3n/2TKRMFQ2v4iTFOSj+uwF7P/Lt98xrZ5Ro="})))))
+
+(deftest activity)
+
+(deftest obj)

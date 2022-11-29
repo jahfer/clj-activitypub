@@ -62,7 +62,7 @@
 
 (defn gen-signature-header [{:keys [user-id private-key]} headers]
   (let [string-to-sign (str-for-signature headers)
-        signature (crypto/encode64 (crypto/sign string-to-sign private-key))
+        signature (crypto/base64-encode (crypto/sign string-to-sign private-key))
         sig-header-keys {"keyId" user-id
                          "headers" (str/join " " signature-headers)
                          "signature" signature}]
@@ -101,7 +101,10 @@
 
 (defmethod obj :note
   [{:keys [user-id]}
-   {:keys [id published inReplyTo content to]}]
+   {:keys [id published inReplyTo content to]
+    :or {published (http/date)
+         inReplyTo nil
+         to "https://www.w3.org/ns/activitystreams#Public"}}]
   {"id" (str user-id "/cards/" id)
    "type" "Note"
    "published" published
