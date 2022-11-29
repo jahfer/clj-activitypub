@@ -81,37 +81,37 @@
            "Signature" (gen-signature-header config h)
            "Digest" digest)))
 
-(defmulti activity (fn [_config activity-type _data] activity-type))
-
-(defmethod activity :create [{:keys [user-id]} _ data]
-  {"@context" "https://www.w3.org/ns/activitystreams"
-   "type" "Create"
-   "actor" user-id
-   "object" data})
-
-(defmethod activity :delete [{:keys [user-id]} _ data]
-  {"@context" "https://www.w3.org/ns/activitystreams"
-   "type" "Delete"
-   "actor" user-id
-   "to" ["https://www.w3.org/ns/activitystreams#Public"]
-   "object" data})
-
-(defmulti obj (fn [_config object-data]
-                (:type object-data)))
+(defmulti obj (fn [_config object-data] (:type object-data)))
 
 (defmethod obj :note
   [{:keys [user-id]}
    {:keys [id published inReplyTo content to]
     :or {published (http/date)
-         inReplyTo nil
+         inReplyTo ""
          to "https://www.w3.org/ns/activitystreams#Public"}}]
-  {"id" (str user-id "/cards/" id)
+  {"id" (str user-id "/notes/" id)
    "type" "Note"
    "published" published
    "attributedTo" user-id
    "inReplyTo" inReplyTo
    "content" content
    "to" to})
+
+(defmulti activity (fn [_config activity-type _data] activity-type))
+
+(defmethod activity :create [{:keys [user-id]} _ data]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
+   "type" "Create"
+   "actor" user-id
+   "object" data})
+
+(defmethod activity :delete [{:keys [user-id]} _ data]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
+   "type" "Delete"
+   "actor" user-id
+   "object" data})
 
 (defn with-config [config]
   (let [f (juxt
