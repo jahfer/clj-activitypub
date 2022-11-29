@@ -1,8 +1,16 @@
 # clj-activitypub
 
-⚠️ WIP!
+> **Warning**
+> This is very much a work-in-progress. Only a tiny bit of the ActivityPub spec is implemented, and it definitely does not conform to all of the nuances expected _yet_.
 
 #### Examples
+
+Before running the code, you'll need to create a local key/value pair in the `/keys` directory.
+
+```bash
+$ openssl genrsa -out keys/private.pem 2048
+$ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
+```
 
 ```clj
 ;; Fetching user account on remote server
@@ -34,6 +42,9 @@
 ```
 
 #### Running tests
+
+> **Note**
+> Tests requiring access to the public/private key will currently fail as the keys are not committed to the repo.
 
 ```bash
 $ clj -X:test
