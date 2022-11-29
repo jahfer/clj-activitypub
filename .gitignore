@@ -1,0 +1,7 @@
+.clj-kondo
+.cpcache
+.lsp
+.vscode
+.nrepl-port
+.calva
+*.pem
