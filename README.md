@@ -5,7 +5,7 @@
 
 #### Examples
 
-Before running the code, you'll need to create a local key/value pair in the `/keys` directory.
+Before submitting anything to a remote server, you'll need to create a local key/value pair in the `/keys` directory.
 
 ```bash
 $ openssl genrsa -out keys/private.pem 2048
