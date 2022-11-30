@@ -37,8 +37,8 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
                :body (json/write-str body)}]
   (client/post "https://mastodon.social/inbox"
                (assoc request
-                      :headers (activitypub/auth-headers config request
-                      :throw-exceptions false))))
+                      :headers (activitypub/auth-headers config request)
+                      :throw-exceptions false)))
 ```
 
 #### Running tests

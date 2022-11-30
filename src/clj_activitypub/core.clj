@@ -7,13 +7,18 @@
 
 (defn config
   "Creates hash of computed data relevant for most ActivityPub utilities."
-  [{:keys [domain username username-route] :or {username-route "/users/"}}]
+  [{:keys [domain username username-route public-key private-key]
+    :or {username-route "/users/"
+         public-key nil
+         private-key nil}}]
   (let [base-url (str "https://" domain)]
     {:domain domain
      :base-url base-url
      :username username
      :user-id (str base-url username-route username)
-     :private-key crypto/test-private-key}))
+     :public-key public-key
+     :private-key (when private-key
+                    (crypto/private-key private-key))}))
 
 (defn parse-account
   "Given an ActivityPub handle (e.g. @jahfer@mastodon.social), produces
@@ -38,15 +43,17 @@
                           :ignore-unknown-host? true
                           :headers {"Accept" "application/activity+json"}}))))
 
-(defn actor [{:keys [user-id username]}]
-  {"@context" ["https://www.w3.org/ns/activitystreams"]
+(defn actor [{:keys [user-id username public-key]}]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
    :id user-id
    :type "Person"
    :preferredUsername username
    :inbox (str user-id "/inbox")
+   :outbox (str user-id "/outbox")
    :publicKey {:id (str user-id "#main-key")
                :owner user-id
-               :publicKeyPem crypto/test-public-key-str}})
+               :publicKeyPem public-key}})
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 

@@ -11,10 +11,14 @@
        (org.bouncycastle.openssl.PEMParser.)
        (.readObject)))
 
-(defn- pem-string->key-pair
-  [string]
+(defn- pem-string->key-pair [string]
   (let [kd (keydata (io/reader (.getBytes string)))]
     (.getKeyPair (org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter.) kd)))
+
+(defn private-key [private-pem-str]
+  (-> private-pem-str
+      (pem-string->key-pair)
+      (.getPrivate)))
 
 (defn base64-encode [bytes]
   (.encodeToString (Base64/getEncoder) bytes))
@@ -29,13 +33,4 @@
               (.initSign private-key (SecureRandom.))
               (.update bytes))]
     (.sign signer)))
-
-(def test-public-key-str
-  (slurp "keys/public.pem"))
-
-(def test-private-key
-  (-> (slurp "keys/private.pem")
-      (pem-string->key-pair)
-      (.getPrivate)))
-
 
