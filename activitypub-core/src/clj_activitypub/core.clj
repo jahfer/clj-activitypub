@@ -1,7 +1,7 @@
 (ns clj-activitypub.core
-  (:require [crypto]
-            [thread-cache]
-            [http-util :as http]
+  (:require [clj-activitypub.internal.crypto :as crypto]
+            [clj-activitypub.internal.thread-cache :as thread-cache]
+            [clj-activitypub.internal.http-util :as http]
             [clj-http.client :as client]
             [clojure.string :as str]))
 
@@ -53,7 +53,7 @@
    :outbox (str user-id "/outbox")
    :publicKey {:id (str user-id "#main-key")
                :owner user-id
-               :publicKeyPem public-key}})
+               :publicKeyPem (or public-key "")}})
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 

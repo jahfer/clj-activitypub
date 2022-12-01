@@ -1,5 +1,5 @@
-(ns http-util
-  (:require [crypto])
+(ns clj-activitypub.internal.http-util
+  (:require [clj-activitypub.internal.crypto :as crypto])
   (:import (java.net URLEncoder)
            (java.time OffsetDateTime ZoneOffset)
            (java.time.format DateTimeFormatter)))

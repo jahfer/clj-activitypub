@@ -1,0 +1,11 @@
+{:deps {clj-activitypub/core {:local/root "../activitypub-core"}
+        ring/ring-core {:mvn/version "1.9.6"}
+        ring/ring-mock {:mvn/version "0.4.0"}
+        ring/ring-jetty-adapter {:mvn/version "1.9.6"}
+        compojure/compojure {:mvn/version "1.7.0"}
+        clj-http/clj-http {:mvn/version "3.12.3"}
+        cheshire/cheshire {:mvn/version "5.11.0"}}
+ :aliases {:test {:extra-paths ["test"]
+                  :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+                  :main-opts ["-m" "cognitect.test-runner"]
+                  :exec-fn cognitect.test-runner.api/test}}}

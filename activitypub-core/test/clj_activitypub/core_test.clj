@@ -1,8 +1,7 @@
 (ns clj-activitypub.core-test
   (:require [clojure.test :as t :refer (is deftest testing)]
             [clj-activitypub.core :as core]
-            [http-util]
-            [crypto]))
+            [clj-activitypub.internal.http-util :as http-util]))
 
 (defn mock-date []
   (str "Tue, 29 Nov 2022 12:47:08 GMT"))
@@ -40,7 +39,7 @@
           body "Hello world!"]
       (is (= (core/auth-headers
               (core/config (assoc (core/parse-account "@jahfer@example.com")
-                                  :private-key (slurp "keys/private.pem")))
+                                  :private-key (slurp "../keys/private.pem")))
               {:headers headers :body body})
              {"Test" "header example"
               "Another" 123

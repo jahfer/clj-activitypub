@@ -1,7 +1,7 @@
 (ns clj-activitypub.webfinger
   (:require [clj-http.client :as client]
-            [http-util :as http]
-            [thread-cache]))
+            [clj-activitypub.internal.http-util :as http]
+            [clj-activitypub.internal.thread-cache :as thread-cache]))
 
 (def remote-uri-path "/.well-known/webfinger")
 
