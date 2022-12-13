@@ -1,6 +1,6 @@
-(ns thread-cache-test
+(ns clj-activitypub.internal.thread-cache-test
   (:require [clojure.test :as t :refer (is deftest testing)]
-            [thread-cache :as tc]))
+            [clj-activitypub.internal.thread-cache :as tc]))
 
 (deftest cache-if-nil
   (testing "Defaults to :cache-if-nil false"
@@ -49,10 +49,10 @@
     (let [cache (tc/make)]
       ((:cache-kv cache) :key-1 "Hello")
       (Thread/sleep 1) ;; sleep for 1ms for determinism in sort order
-      ((:cache-kv cache) :key-2 "World") 
+      ((:cache-kv cache) :key-2 "World")
       (is (= [[:key-1 "Hello"] [:key-2 "World"]]
              ((:lru cache))))
-      
+
       (Thread/sleep 1)
       ((:cache-kv cache) :key-1 "Hola")
       (is (= [[:key-2 "World"] [:key-1 "Hola"]]
