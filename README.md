@@ -46,7 +46,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 > **Note**
 > Tests requiring access to the public/private key will currently fail as the keys are not committed to the repo.
 
-There are two libraries within this package: `activitypub-core` and `activitypub-ring`. In order to run tests, the following command must be run from inside of either of those directories:
+There are two libraries within this package: `activitypub-core` and `activitypub-ring`. In order to run tests, the following command must be run from inside either of those directories:
 
 ```bash
 $ clj -X:test
