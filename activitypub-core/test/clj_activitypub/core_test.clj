@@ -39,7 +39,7 @@
           body "Hello world!"]
       (is (= (core/auth-headers
               (core/config (assoc (core/parse-account "@jahfer@example.com")
-                                  :private-key (slurp "../keys/private.pem")))
+                                  :private-key (slurp "../keys/test_private.pem")))
               {:headers headers :body body})
              {"Test" "header example"
               "Another" 123

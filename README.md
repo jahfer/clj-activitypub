@@ -5,7 +5,7 @@
 
 #### Examples
 
-Before POSTing data to a remote server, you'll need to create a local key/value pair in the `/keys` directory.
+Before POSTing data to a remote server, you'll want to create a local key/value pair in the `/keys` directory.
 
 ```bash
 $ openssl genrsa -out keys/private.pem 2048
@@ -45,6 +45,8 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 
 > **Note**
 > Tests requiring access to the public/private key will currently fail as the keys are not committed to the repo.
+
+There are two libraries within this package: `activitypub-core` and `activitypub-ring`. In order to run tests, the following command must be run from inside of either of those directories:
 
 ```bash
 $ clj -X:test
