@@ -9,7 +9,7 @@
 - `activitypub-core` — The base functionality for generating HTTP headers (i.e. `Signature`, `Digest`), building ActivityPub activities and objects, and sending requests to remote servers.
 - `activitypub-ring` — A Ring-specific implementation that builds on `activitypub-core`, providing default routes and handlers for making an ActivityPub-compliant server.
 
-#### Examples
+### Examples
 
 Before POSTing data to a remote server, you'll want to create a local key/value pair in the `/keys` directory.
 
@@ -47,7 +47,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
                       :throw-exceptions false)))
 ```
 
-#### Running tests
+### Running tests
 
 > **Note**
 > Tests requiring access to the public/private key will currently fail as the keys are not committed to the repo.
@@ -59,7 +59,8 @@ There are two libraries within this package: `activitypub-core` and `activitypub
 $ clj -X:test
 ```
 
-#### Reference
+### Reference
 - https://www.w3.org/TR/activitypub/
 - https://www.w3.org/TR/activitystreams-core/
 - https://www.w3.org/ns/activitystreams#Public
+- https://www.w3.org/TR/activitystreams-vocabulary/
