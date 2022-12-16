@@ -20,14 +20,30 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 
 ```clj
 ;; Fetching user account on remote server
-(as-> "@jahfer@mastodon.social" $
-  (activitypub/parse-account $)
-  (map $ [:domain :username])
-  (apply webfinger/fetch-user-id $)
-  (activitypub/fetch-user $)
-  (select-keys $ ["followers" "following" "inbox" "outbox"
-                  "endpoints" "publicKey" "summary" "attachment"
-                  "name" "preferredUsername" "icon" "published"]))
+(require '[clj-activitypub.core :as activitypub])
+(require '[clj-activitypub.webfinger :as webfinger])
+(require '[clojure.walk :refer [keywordize-keys]])
+(require '[clojure.pprint :refer [pprint]])
+
+;;; Use any ActivityPub account handle you like - for example, your own
+(def account-handle "@jahfer@mastodon.social")
+
+;;; Retrieve the account details from its home server
+;;; (`keywordize-keys` is not necessary here but produces a more idiomatic clojure
+;;; data structure)
+(def account 
+ (as-> account-handle $
+   (activitypub/parse-account $)
+   (map $ [:domain :username])
+   (apply webfinger/fetch-user-id $)
+   (activitypub/fetch-user $)
+   (select-keys $ ["followers" "following" "inbox" "outbox"
+                   "endpoints" "publicKey" "summary" "attachment"
+                   "name" "preferredUsername" "icon" "published"])
+   (keywordize-keys $)))
+
+;;; examine what you got back!
+(pprint account)
 ```
 
 ```clj
