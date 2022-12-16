@@ -26,7 +26,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 (require '[clojure.pprint :refer [pprint]])
 
 ;;; Use any ActivityPub account handle you like - for example, your own
-(def account-handle "@simon_brooke@mastodon.scot")
+(def account-handle "@jahfer@mastodon.social")
 
 ;;; Retrieve the account details from its home server
 ;;; (`keywordize-keys` is not necessary here but produces a more idiomatic clojure
@@ -69,8 +69,6 @@ There are two libraries within this package: `activitypub-core` and `activitypub
 
 ```bash
 # clj_activitypub/activitypub_core
-$ clj -X:test
-$ cd ../activitypub-ring
 $ clj -X:test
 ```
 
