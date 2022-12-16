@@ -22,18 +22,16 @@
 
 (defn parse-account
   "Given an ActivityPub handle (e.g. @jahfer@mastodon.social), produces
-   a hash-map containing {:domain ... :username ...}."
+   a map containing {:domain ... :username ...}."
   [handle]
   (let [[username domain] (filter #(not (str/blank? %))
                                   (str/split handle #"@"))]
     {:domain domain :username username}))
 
-(def user-cache
-  (thread-cache/make))
-
+(def ^:private user-cache (thread-cache/make))
 (defn fetch-user
-  "Fetches the customer account details located at user-id
-   from a remote server."
+  "Fetches the customer account details located at user-id from a remote
+   server. Will return cached results if they exist in memory."
   [user-id]
   ((:get-v user-cache)
    user-id
@@ -43,7 +41,10 @@
                           :ignore-unknown-host? true
                           :headers {"Accept" "application/activity+json"}}))))
 
-(defn actor [{:keys [user-id username public-key]}]
+(defn actor
+  "Accepts a config, and returns a map in the form expected by the ActivityPub
+   spec. See https://www.w3.org/TR/activitypub/#actor-objects for reference."
+  [{:keys [user-id username public-key]}]
   {"@context" ["https://www.w3.org/ns/activitystreams"
                "https://w3id.org/security/v1"]
    :id user-id
@@ -57,7 +58,7 @@
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 
-(defn str-for-signature [headers]
+(defn- str-for-signature [headers]
   (let [headers-xf (reduce-kv
                     (fn [m k v]
                       (assoc m (str/lower-case k) v)) {} headers)]
@@ -67,8 +68,11 @@
          (interpose "\n")
          (apply str))))
 
-(defn gen-signature-header [{:keys [user-id private-key]} headers]
-  (let [string-to-sign (str-for-signature headers)
+(defn gen-signature-header
+  "Generates a HTTP Signature string based on the provided map of headers."
+  [config headers]
+  (let [{:keys [user-id private-key]} config
+        string-to-sign (str-for-signature headers)
         signature (crypto/base64-encode (crypto/sign string-to-sign private-key))
         sig-header-keys {"keyId" user-id
                          "headers" (str/join " " signature-headers)
@@ -79,7 +83,10 @@
          (interpose ",")
          (apply str))))
 
-(defn auth-headers [config {:keys [body headers]}]
+(defn auth-headers
+  "Given a config and request map of {:body ... :headers ...}, returns the
+   original set of headers with Signature and Digest attributes appended."
+  [config {:keys [body headers]}]
   (let [digest (http/digest body)
         h (-> headers
               (assoc "Digest" digest)
@@ -88,7 +95,11 @@
            "Signature" (gen-signature-header config h)
            "Digest" digest)))
 
-(defmulti obj (fn [_config object-data] (:type object-data)))
+(defmulti obj
+  "Produces a map representing an ActivityPub object which can be serialized
+   directly to JSON in the form expected by the ActivityStreams 2.0 spec.
+   See https://www.w3.org/TR/activitystreams-vocabulary/ for reference."
+  (fn [_config object-data] (:type object-data)))
 
 (defmethod obj :note
   [{:keys [user-id]}
@@ -104,7 +115,11 @@
    "content" content
    "to" to})
 
-(defmulti activity (fn [_config activity-type _data] activity-type))
+(defmulti activity
+  "Produces a map representing an ActivityPub activity which can be serialized
+   directly to JSON in the form expected by the ActivityStreams 2.0 spec.
+   See https://www.w3.org/TR/activitystreams-vocabulary/ for reference."
+  (fn [_config activity-type _data] activity-type))
 
 (defmethod activity :create [{:keys [user-id]} _ data]
   {"@context" ["https://www.w3.org/ns/activitystreams"
@@ -120,7 +135,10 @@
    "actor" user-id
    "object" data})
 
-(defn with-config [config]
+(defn with-config
+  "Returns curried forms of the #activity and #obj multimethods in the form
+   {:activity ... :obj ...}, with the initial parameter set to config."
+  [config]
   (let [f (juxt
            #(partial activity %)
            #(partial obj %))

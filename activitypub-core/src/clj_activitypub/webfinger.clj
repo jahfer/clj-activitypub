@@ -5,7 +5,7 @@
 
 (def remote-uri-path "/.well-known/webfinger")
 
-(defn resource-str [domain username]
+(defn- resource-str [domain username]
   (str "acct:" username "@" domain))
 
 (defn resource-url
@@ -15,15 +15,15 @@
         query-str (http/encode-url-params (merge params {:resource resource}))]
     (str "https://" domain remote-uri-path "?" query-str)))
 
-(def user-id-cache
+(def ^:private user-id-cache
   (thread-cache/make))
 
-(defn cache-key [domain username]
-  (str username "@" domain))
-
-(defn fetch-user-id [domain username]
+(defn fetch-user-id
+  "Follows the webfinger request to a remote domain, retrieving the ID of the requested
+   account. Typically returns a string in the form of a URL."
+  [domain username]
   ((:get-v user-id-cache)
-   (cache-key domain username)
+   (str domain "@" username) ;; cache key
    (fn []
      (let [response (some-> (resource-url domain username {:rel "self"})
                             (client/get {:as :json :throw-exceptions false :ignore-unknown-host? true}))]

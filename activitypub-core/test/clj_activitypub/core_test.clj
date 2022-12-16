@@ -9,13 +9,15 @@
 (deftest config
   (testing "#config creates hash of expected results"
     (let [data {:domain "example.com"
-                :username "jahfer"}]
+                :username "jahfer"
+                :public-key (slurp "../keys/test_public.pem")}]
       (is (= {:domain "example.com"
               :username "jahfer"
               :base-url "https://example.com"
-              :user-id "https://example.com/users/jahfer"}
+              :user-id "https://example.com/users/jahfer"
+              :public-key "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4Q0Y5nUeh/YLrdhe0rhF\nlLMOjqzaA326XanjkeMbF8QggSLF9t+9t/zzDnXFK8ESIaiEYSaFf0jQbNBU2uAu\nuXKaVOlATAR1UQ65Z3Fj3lWbs+fR3Ku7WM49hPR889onDC3K7Smnd1hXeFfbcxfl\niGbUkwcgjdETxwjzIuPY4l6287uwSGSb1Ch0GLNxb6cFHDlO4rtd60rs9sUd/ppe\n1yr7FI5fbtr3iiEGCmqMUcmywIzxUkmGcy7JjweP/oEb8mdpMRlKw7jz/fjnJL6z\nQImiivJU6tx8a0mDQn6mm1ndtVOlMK2kivcjhWKitL8o6DQWLC63MPaOEJDWOx3J\nOwIDAQAB\n-----END PUBLIC KEY-----\n"}
              (select-keys (core/config data)
-                          [:domain :username :base-url :user-id]))))))
+                          [:domain :username :base-url :user-id :public-key]))))))
 
 (deftest parse-account
   (testing "Parses account to username and domain"
@@ -39,7 +41,7 @@
           body "Hello world!"]
       (is (= (core/auth-headers
               (core/config (assoc (core/parse-account "@jahfer@example.com")
-                                  :private-key (slurp "../keys/private.pem")))
+                                  :private-key (slurp "../keys/test_private.pem")))
               {:headers headers :body body})
              {"Test" "header example"
               "Another" 123
