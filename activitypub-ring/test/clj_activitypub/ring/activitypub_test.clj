@@ -12,15 +12,21 @@
 
 (deftest user
   (testing "/inbox route"
-    (is (= {:status 202
+    (is (= {:status 200
             :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-            :body ""}
+            :body (json/write-str {"@context" ["https://www.w3.org/ns/activitystreams"]
+                                   "id" "https://localhost/users/jahfer/inbox?"
+                                   "type"	"OrderedCollectionPage"
+                                   "orderedItems" []})}
            (routes (mock/request :post "/users/jahfer/inbox")))))
   
   (testing "/outbox route"
     (is (= {:status 200
             :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-            :body "{}"}
+            :body (json/write-str {"@context" ["https://www.w3.org/ns/activitystreams"]
+                                   "id" "https://localhost/users/jahfer/outbox?"
+                                   "type"	"OrderedCollectionPage"
+                                   "orderedItems" []})}
            (routes (mock/request :get "/users/jahfer/outbox")))))
   
   (testing "/cards/:id route"
@@ -45,24 +51,4 @@
                       "publicKey" {"id" (str user-id "#main-key")
                                    "owner" user-id
                                    "publicKeyPem" ""}})}
-             (routes (mock/request :get "/users/jahfer")))))) 
-  
-  (testing "/ route with :activity-user set"
-    (let [user (activitypub/config {:domain example-domain
-                                    :username "jahfer"
-                                    :public-key (slurp "../keys/test_public.pem")})]
-      (is (= {:status 200
-              :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-              :body (json/write-str
-                     {"@context" ["https://www.w3.org/ns/activitystreams"
-                                  "https://w3id.org/security/v1"]
-                      "id" (:user-id user)
-                      "type" "Person"
-                      "preferredUsername" "jahfer"
-                      "inbox" (str (:user-id user) "/inbox")
-                      "outbox" (str (:user-id user) "/outbox")
-                      "publicKey" {"id" (str (:user-id user) "#main-key")
-                                   "owner" (:user-id user)
-                                   "publicKeyPem" (:public-key user)}})} 
-             (routes (assoc (mock/request :get "/users/jahfer")
-                            :activity-user user)))))))
+             (routes (mock/request :get "/users/jahfer")))))))

@@ -1,40 +1,52 @@
 (ns clj-activitypub.ring.activitypub
   (:require [clojure.data.json :as json]
             [clj-activitypub.core :as activitypub]
-            [compojure.core :refer [context GET POST context routes]]))
+            [compojure.core :refer [context GET POST context routes]]
+            [clj-activitypub.core :as core]))
 
-(defn default-actor-handler [actor] 
+(defn actor-handler
+  [_request actor] 
   {:status 200
    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
    :body (json/write-str (activitypub/actor actor))})
 
-(defn default-card-handler [_request]
+(defn card-handler
+  [_request]
   {:status 200
    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
    :body "{}"})
 
-(defn default-inbox-handler [_request]
-  {:status 202
-   :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-   :body ""})
+(defn inbox-handler
+  ([request]
+   (inbox-handler request {}))
+  ([request data]
+   {:status 200
+    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+    :body (json/write-str
+           (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
+                   :id (str "https://" (:server-name request) (:uri request) "?" (:query-string request))
+                   :type	"OrderedCollectionPage"
+                   :orderedItems []}
+                  data))}))
 
-(defn default-outbox-handler [_request]
-  {:status 200
-   :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-   :body "{}"})
-
-(defn- wrap-current-user [domain username handler]
-  (fn [request]
-    (if (nil? (:activity-user request))
-      (let [user (activitypub/config {:domain domain :username username})]
-        (handler (assoc request :activity-user user)))
-      (handler request))))
+(defn outbox-handler
+  ([request]
+   (outbox-handler request {}))
+  ([request data]
+   {:status 200
+    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+    :body (json/write-str
+           (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
+                   :id (str "https://" (:server-name request) (:uri request) "?" (:query-string request))
+                   :type	"OrderedCollectionPage"
+                   :orderedItems []}
+                  data))}))
 
 (defn user-routes [domain]
   (context "/users/:username" [username]
-    (wrap-current-user domain username
-     (routes
-      (POST "/inbox"    {:keys [activity-user]} (default-inbox-handler activity-user))
-      (GET "/outbox"    {:keys [activity-user]} (default-outbox-handler activity-user))
-      (GET "/cards/:id" {:keys [activity-user]} (default-card-handler activity-user))
-      (GET "/"          {:keys [activity-user]} (default-actor-handler activity-user))))))
+    (routes
+     (POST "/inbox"    request (inbox-handler request))
+     (GET "/outbox"    request (outbox-handler request))
+     (GET "/cards/:id" request (card-handler request))
+     (GET "/"          request (actor-handler request (core/config {:domain domain
+                                                                    :username username}))))))
