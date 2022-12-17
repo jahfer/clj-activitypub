@@ -1,0 +1,108 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://w3id.org/security/v1",
+    {
+      "manuallyApprovesFollowers": "as:manuallyApprovesFollowers",
+      "toot": "http://joinmastodon.org/ns#",
+      "featured": {
+        "@id": "toot:featured",
+        "@type": "@id"
+      },
+      "featuredTags": {
+        "@id": "toot:featuredTags",
+        "@type": "@id"
+      },
+      "alsoKnownAs": {
+        "@id": "as:alsoKnownAs",
+        "@type": "@id"
+      },
+      "movedTo": {
+        "@id": "as:movedTo",
+        "@type": "@id"
+      },
+      "schema": "http://schema.org#",
+      "PropertyValue": "schema:PropertyValue",
+      "value": "schema:value",
+      "discoverable": "toot:discoverable",
+      "Device": "toot:Device",
+      "Ed25519Signature": "toot:Ed25519Signature",
+      "Ed25519Key": "toot:Ed25519Key",
+      "Curve25519Key": "toot:Curve25519Key",
+      "EncryptedMessage": "toot:EncryptedMessage",
+      "publicKeyBase64": "toot:publicKeyBase64",
+      "deviceId": "toot:deviceId",
+      "claim": {
+        "@type": "@id",
+        "@id": "toot:claim"
+      },
+      "fingerprintKey": {
+        "@type": "@id",
+        "@id": "toot:fingerprintKey"
+      },
+      "identityKey": {
+        "@type": "@id",
+        "@id": "toot:identityKey"
+      },
+      "devices": {
+        "@type": "@id",
+        "@id": "toot:devices"
+      },
+      "messageFranking": "toot:messageFranking",
+      "messageType": "toot:messageType",
+      "cipherText": "toot:cipherText",
+      "suspended": "toot:suspended",
+      "focalPoint": {
+        "@container": "@list",
+        "@id": "toot:focalPoint"
+      }
+    }
+  ],
+  "id": "https://example.com/users/jahfer",
+  "type": "Person",
+  "following": "https://example.com/users/jahfer/following",
+  "followers": "https://example.com/users/jahfer/followers",
+  "inbox": "https://example.com/users/jahfer/inbox",
+  "outbox": "https://example.com/users/jahfer/outbox",
+  "featured": "https://example.com/users/jahfer/collections/featured",
+  "featuredTags": "https://example.com/users/jahfer/collections/tags",
+  "preferredUsername": "jahfer",
+  "name": "Jahfer",
+  "summary": "Just a test user!",
+  "url": "https://example.com/@jahfer",
+  "manuallyApprovesFollowers": false,
+  "discoverable": true,
+  "published": "2017-04-04T00:00:00Z",
+  "devices": "https://example.com/users/jahfer/collections/devices",
+  "publicKey": {
+    "id": "https://example.com/users/jahfer#main-key",
+    "owner": "https://example.com/users/jahfer",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy/SHKSOX42d2aXgxzgbf\n46M5el8LSUww/NmqSikHLnu5KJA2CdNCnZkF1ckRaBcH/mn5NQTi5XnfOFf9wP6L\nUePA/+yvm3+A+e2Px0hUzZTeMVBP3XY5opnkXWQnQuncecj4O4tt0GFOicPqIJo7\ntOpycjpUbYPC4S+/26430/R9ocY92GzbSHuTiqHYZUwi/EONoMRsOj4JgeATSFb1\nnkgkgWT4UyS62DGF5X0gggKrbDK4MymLqStR6Ia/E67908n4rPLLdOATVUnvIxYb\nxLfiJ2k3eDFSqeN+1Ya1vPcDoFa1olklV90LwRv5FGfFwUT9QnuUJTYkc/9YIlpz\nvwIDAQAB\n-----END PUBLIC KEY-----\n"
+  },
+  "tag": [],
+  "attachment": [
+    {
+      "type": "PropertyValue",
+      "name": "Location",
+      "value": "Ottawa, Canada"
+    },
+    {
+      "type": "PropertyValue",
+      "name": "Blog",
+      "value": "\u003ca href=\"https://jahfer.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer me\"\u003e\u003cspan class=\"invisible\"\u003ehttps://\u003c/span\u003e\u003cspan class=\"\"\u003ejahfer.com\u003c/span\u003e\u003cspan class=\"invisible\"\u003e\u003c/span\u003e\u003c/a\u003e"
+    },
+    {
+      "type": "PropertyValue",
+      "name": "Passion Project",
+      "value": "\u003ca href=\"https://ourpolitics.ca\" target=\"_blank\" rel=\"nofollow noopener noreferrer me\"\u003e\u003cspan class=\"invisible\"\u003ehttps://\u003c/span\u003e\u003cspan class=\"\"\u003eourpolitics.ca\u003c/span\u003e\u003cspan class=\"invisible\"\u003e\u003c/span\u003e\u003c/a\u003e"
+    }
+  ],
+  "endpoints": {
+    "sharedInbox": "https://example.com/inbox"
+  },
+  "icon": {
+    "type": "Image",
+    "mediaType": "image/png",
+    "url": "https://files.example.com/accounts/avatars/000/040/449/original/1d14ac504eeea165.png"
+  }
+}

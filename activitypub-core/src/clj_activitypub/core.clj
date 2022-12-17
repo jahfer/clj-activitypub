@@ -29,17 +29,35 @@
     {:domain domain :username username}))
 
 (def ^:private user-cache (thread-cache/make))
-(defn fetch-user
+(defn fetch-users
   "Fetches the customer account details located at user-id from a remote
    server. Will return cached results if they exist in memory."
-  [user-id]
-  ((:get-v user-cache)
-   user-id
-   #(:body
-     (client/get user-id {:as :json-string-keys
-                          :throw-exceptions false
-                          :ignore-unknown-host? true
-                          :headers {"Accept" "application/activity+json"}}))))
+  ([user-id] (fetch-users user-id 0))
+  ([user-id depth]
+   (when (< depth 3)
+     ((:get-v user-cache)
+      user-id
+      (fn []
+        (when-let [response (client/get user-id {:as :json
+                                                 :throw-exceptions false
+                                                 :ignore-unknown-host? true
+                                                 :headers {"Accept" "application/activity+json"}})]
+          (let [body (:body response)
+                depth' (inc depth)]
+            (println (str "Fetching: " user-id " {depth: " depth "}"))
+            (condp = (:type body)
+              "OrderedCollection" (concat (fetch-users (:first body) depth'))
+              "Collection" (concat (fetch-users (:first body) depth'))
+              "OrderedCollectionPage" (concat (mapcat #(fetch-users % depth') (:orderedItems body))
+                                              (if (:next body)
+                                                (fetch-users (:next body) depth)
+                                                []))
+              "CollectionPage" (concat (mapcat #(fetch-users % depth') (:items body))
+                                        (if (:next body)
+                                          (fetch-users (:next body) depth)
+                                          []))
+              "Person" [body]
+              (println (str "Unknown response for ID " user-id))))))))))
 
 (defn actor
   "Accepts a config, and returns a map in the form expected by the ActivityPub

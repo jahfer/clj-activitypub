@@ -1,7 +1,9 @@
 (ns clj-activitypub.core-test
   (:require [clojure.test :as t :refer (is deftest testing)]
             [clj-activitypub.core :as core]
-            [clj-activitypub.internal.http-util :as http-util]))
+            [clj-activitypub.internal.http-util :as http-util]
+            [clj-activitypub.test-support.http :refer [http-stubs]]
+            [clj-http.fake :refer [with-fake-routes-in-isolation]]))
 
 (defn mock-date []
   (str "Tue, 29 Nov 2022 12:47:08 GMT"))
@@ -32,7 +34,15 @@
 
 (deftest actor)
 
-(deftest fetch-user)
+(deftest fetch-users
+  (with-fake-routes-in-isolation http-stubs
+    (testing "Performs GET request, returning the response body"
+      (let [user-id "https://example.com/users/jahfer"]
+        (is (= [{:inbox "https://example.com/users/jahfer/inbox"
+                :outbox "https://example.com/users/jahfer/outbox"
+                :name "Jahfer"}]
+               (map #(select-keys % [:inbox :outbox :name])
+                    (core/fetch-users user-id))))))))
 
 (deftest auth-headers
   (testing "Accepts request data and returns the headers with auth attributes included"
