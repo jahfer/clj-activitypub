@@ -34,15 +34,23 @@
 
 (deftest actor)
 
-(deftest fetch-users
-  (with-fake-routes-in-isolation http-stubs
-    (testing "Performs GET request, returning the response body"
+(deftest fetch-users 
+  (testing "Performs GET request, returning the response body"
+    (core/reset-user-cache)
+    (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"]
         (is (= [{:inbox "https://example.com/users/jahfer/inbox"
-                :outbox "https://example.com/users/jahfer/outbox"
-                :name "Jahfer"}]
+                 :outbox "https://example.com/users/jahfer/outbox"
+                 :name "Jahfer"}]
                (map #(select-keys % [:inbox :outbox :name])
-                    (core/fetch-users user-id))))))))
+                    (core/fetch-users user-id)))))))
+  (testing "Retrieves data from cache if exists"
+    (core/reset-user-cache)
+    (let [user-id "https://example.com/users/jahfer"]
+      (with-fake-routes-in-isolation http-stubs
+        (core/fetch-users user-id)) ;; call once with stub to cache results
+      (with-fake-routes-in-isolation {}
+        (core/fetch-users user-id)))))
 
 (deftest auth-headers
   (testing "Accepts request data and returns the headers with auth attributes included"

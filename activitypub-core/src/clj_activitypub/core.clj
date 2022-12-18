@@ -29,6 +29,8 @@
     {:domain domain :username username}))
 
 (def ^:private user-cache (thread-cache/make))
+(defn reset-user-cache []
+  ((:reset user-cache)))
 (defn fetch-users
   "Fetches the customer account details located at user-id from a remote
    server. Will return cached results if they exist in memory."
@@ -43,8 +45,7 @@
                                                  :ignore-unknown-host? true
                                                  :headers {"Accept" "application/activity+json"}})]
           (let [body (:body response)
-                depth' (inc depth)]
-            (println (str "Fetching: " user-id " {depth: " depth "}"))
+                depth' (inc depth)] 
             (condp = (:type body)
               "OrderedCollection" (concat (fetch-users (:first body) depth'))
               "Collection" (concat (fetch-users (:first body) depth'))
@@ -53,9 +54,9 @@
                                                 (fetch-users (:next body) depth)
                                                 []))
               "CollectionPage" (concat (mapcat #(fetch-users % depth') (:items body))
-                                        (if (:next body)
-                                          (fetch-users (:next body) depth)
-                                          []))
+                                       (if (:next body)
+                                         (fetch-users (:next body) depth)
+                                         []))
               "Person" [body]
               (println (str "Unknown response for ID " user-id))))))))))
 
