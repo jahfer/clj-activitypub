@@ -22,40 +22,32 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ;; Fetching user account on remote server
 (require '[clj-activitypub.core :as activitypub])
 (require '[clj-activitypub.webfinger :as webfinger])
-(require '[clojure.walk :refer [keywordize-keys]])
 (require '[clojure.pprint :refer [pprint]])
 
-;;; Use any ActivityPub account handle you like - for example, your own
+;;; Use any ActivityPub account handle you like
 (def account-handle "@jahfer@mastodon.social")
 
 ;;; Retrieve the account details from its home server
-;;; (`keywordize-keys` is not necessary here but produces a more idiomatic clojure
-;;; data structure)
-(def account 
+(def account
  (as-> account-handle $
    (activitypub/parse-account $)
    (map $ [:domain :username])
    (apply webfinger/fetch-user-id $)
-   (activitypub/fetch-user $)
-   (select-keys $ ["followers" "following" "inbox" "outbox"
-                   "endpoints" "publicKey" "summary" "attachment"
-                   "name" "preferredUsername" "icon" "published"])
-   (keywordize-keys $)))
+   (activitypub/fetch-users $)
+   (map #(select-keys % [:name :preferredUsername :summary]) $)))
 
 ;;; examine what you got back!
-(pprint account)
+(pprint account) ;; => ({:name "Jahfer",
+                 ;;      :preferredUsername "jahfer",
+                 ;;      :summary "<p>Hello world!</p>"})
 ```
 
 ```clj
 ;; Submitting a Create activity for an Object to remote server
 (let [config (activitypub/config {:domain base-domain :username "jahfer"})
-      {:keys [activity obj]} (activitypub/with-config config)
-      body (->> (obj {:id 1
-                      :type :note
-                      :content "Hello world!"})
-                (activity :create))
-      request {:headers {"Host" "mastodon.social"
-                         "Date" (http/date)}
+      body (->> (obj config {:id 1 :type :note :content "Hello world!"})
+                (activity config :create))
+      request {:headers {"Host" "mastodon.social" "Date" (http/date)}
                :body (json/write-str body)}]
   (client/post "https://mastodon.social/inbox"
                (assoc request
