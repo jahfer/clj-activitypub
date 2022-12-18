@@ -20,7 +20,7 @@
      :private-key (when private-key
                     (crypto/private-key private-key))}))
 
-(defn parse-account
+(defn parse-handle
   "Given an ActivityPub handle (e.g. @jahfer@mastodon.social), produces
    a map containing {:domain ... :username ...}."
   [handle]

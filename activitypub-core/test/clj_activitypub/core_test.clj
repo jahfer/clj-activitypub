@@ -21,15 +21,15 @@
              (select-keys (core/config data)
                           [:domain :username :base-url :user-id :public-key]))))))
 
-(deftest parse-account
+(deftest parse-handle
   (testing "Parses account to username and domain"
-    (is (= (core/parse-account "jahfer@example.com") 
+    (is (= (core/parse-handle "jahfer@example.com") 
            {:username "jahfer" :domain "example.com"}))) 
   (testing "Parses account with leading @-sign"
-    (is (= (core/parse-account "@jahfer@example.com")
+    (is (= (core/parse-handle "@jahfer@example.com")
            {:username "jahfer" :domain "example.com"})))
   (testing "Parses username when domain is not provided"
-    (is (= (core/parse-account "@jahfer")
+    (is (= (core/parse-handle "@jahfer")
            {:username "jahfer" :domain nil}))))
 
 (deftest actor)
@@ -66,7 +66,8 @@
     (core/reset-user-cache)
     (let [user-id "https://example.com/users/jahfer"]
       (with-fake-routes-in-isolation http-stubs
-        (core/fetch-users user-id)) ;; call once with stub to cache results
+         ;; call once with stub to cache results
+        (core/fetch-users user-id))
       (with-fake-routes-in-isolation {}
         (core/fetch-users user-id)))))
 
@@ -76,7 +77,7 @@
                    "Another" 123}
           body "Hello world!"]
       (is (= (core/auth-headers
-              (core/config (assoc (core/parse-account "@jahfer@example.com")
+              (core/config (assoc (core/parse-handle "@jahfer@example.com")
                                   :private-key (slurp "../keys/test_private.pem")))
               {:headers headers :body body})
              {"Test" "header example"
@@ -86,7 +87,7 @@
 
 (deftest obj
   (testing "obj :note returns expected hash" 
-    (let [config (core/config (core/parse-account "@jahfer@example.com"))
+    (let [config (core/config (core/parse-handle "@jahfer@example.com"))
           {:keys [obj]} (core/with-config config)]
       (is (= {"id" "https://example.com/users/jahfer/notes/1"
               "type" "Note" 
@@ -100,7 +101,7 @@
 
 (deftest activity
   (testing "activity :create returns expected hash"
-    (let [config (core/config (core/parse-account "@jahfer@example.com"))]
+    (let [config (core/config (core/parse-handle "@jahfer@example.com"))]
       (is (= {"@context" ["https://www.w3.org/ns/activitystreams"
                           "https://w3id.org/security/v1"]
               "type" "Create"
@@ -109,7 +110,7 @@
              (core/activity config :create {"my" "object"})))))
   
   (testing "activity :delete returns expected hash"
-    (let [config (core/config (core/parse-account "@jahfer@example.com"))]
+    (let [config (core/config (core/parse-handle "@jahfer@example.com"))]
       (is (= {"@context" ["https://www.w3.org/ns/activitystreams"
                           "https://w3id.org/security/v1"]
               "type" "Delete"
