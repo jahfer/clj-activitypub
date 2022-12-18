@@ -1,2 +1,7 @@
-{:deps {clj-activitypub/core {:local/root "activitypub-core"}
-        clj-activitypub/ring {:local/root "activitypub-ring"}}}
+{:paths ["activitypub-core/src"
+         "activitypub-ring/src"]
+ :deps {clj-activitypub/activitypub-core {:local/root "activitypub-core"}
+        clj-activitypub/activitypub-ring {:local/root "activitypub-ring"}}
+ :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.5" :git/sha "9c738da"}
+                          slipset/deps-deploy {:mvn/version "RELEASE"}}
+                   :ns-default build}}}
