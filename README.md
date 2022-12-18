@@ -29,12 +29,11 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 
 ;;; Retrieve the account details from its home server
 (def account
- (as-> account-handle $
-   (activitypub/parse-account $)
-   (map $ [:domain :username])
-   (apply webfinger/fetch-user-id $)
-   (activitypub/fetch-user $)
-   (select-keys $ [:name :preferredUsername :summary])))
+ (-> account-handle
+   (activitypub/parse-handle)
+   (webfinger/fetch-user-id)
+   (activitypub/fetch-user)
+   (select-keys [:name :preferredUsername :summary])))
 
 ;;; examine what you got back!
 (pprint account) ;; => ({:name "Jahfer",
