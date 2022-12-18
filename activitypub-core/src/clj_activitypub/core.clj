@@ -29,14 +29,22 @@
     {:domain domain :username username}))
 
 (def ^:private user-cache (thread-cache/make))
-(defn reset-user-cache []
+
+(defn reset-user-cache
+  "Removes all entries from the user cache, which is populated with results
+   from [[fetch-users]] or [[fetch-user]]."
+  []
   ((:reset user-cache)))
+
 (defn fetch-users
-  "Fetches the customer account details located at user-id from a remote
-   server. Will return cached results if they exist in memory."
-  ([user-id] (fetch-users user-id 0))
-  ([user-id depth]
-   (when (< depth 3)
+  "Fetches the actor(s) located at user-id from a remote server. Results are
+   returned as a collection. If URL points to an ActivityPub Collection, the
+   links will be followed until max-depth is reached. Will return cached
+   results if they exist in memory."
+  ([user-id] (fetch-users user-id 3 0))
+  ([user-id max-depth] (fetch-users user-id max-depth 0))
+  ([user-id max-depth current-depth]
+   (when (< current-depth max-depth)
      ((:get-v user-cache)
       user-id
       (fn []
@@ -45,20 +53,28 @@
                                                  :ignore-unknown-host? true
                                                  :headers {"Accept" "application/activity+json"}})]
           (let [body (:body response)
-                depth' (inc depth)] 
+                depth' (inc current-depth)] 
             (condp = (:type body)
               "OrderedCollection" (concat (fetch-users (:first body) depth'))
               "Collection" (concat (fetch-users (:first body) depth'))
               "OrderedCollectionPage" (concat (mapcat #(fetch-users % depth') (:orderedItems body))
                                               (if (:next body)
-                                                (fetch-users (:next body) depth)
+                                                (fetch-users (:next body) current-depth)
                                                 []))
               "CollectionPage" (concat (mapcat #(fetch-users % depth') (:items body))
                                        (if (:next body)
-                                         (fetch-users (:next body) depth)
+                                         (fetch-users (:next body) current-depth)
                                          []))
               "Person" [body]
               (println (str "Unknown response for ID " user-id))))))))))
+
+(defn fetch-user
+  "Fetches the actor located at user-id from a remote server. Links to remote
+   ActivityPub Collections will not be followed. If you wish to retrieve a list
+   of users, see [[fetch-users]]. Will return a cached result if it exists in
+   memory."
+  [user-id]
+  (first (fetch-users user-id 1)))
 
 (defn actor
   "Accepts a config, and returns a map in the form expected by the ActivityPub

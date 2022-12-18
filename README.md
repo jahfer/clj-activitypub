@@ -33,8 +33,8 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
    (activitypub/parse-account $)
    (map $ [:domain :username])
    (apply webfinger/fetch-user-id $)
-   (activitypub/fetch-users $)
-   (map #(select-keys % [:name :preferredUsername :summary]) $)))
+   (activitypub/fetch-user $)
+   (select-keys $ [:name :preferredUsername :summary])))
 
 ;;; examine what you got back!
 (pprint account) ;; => ({:name "Jahfer",
