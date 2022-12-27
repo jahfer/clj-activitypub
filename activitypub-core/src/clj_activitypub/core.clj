@@ -29,36 +29,44 @@
   ((:reset user-cache)))
 
 (defn fetch-users
-  "Fetches the actor(s) located at user-id from a remote server. Results are
+  "Fetches the actor(s) located at remote-id from a remote server. Results are
    returned as a collection. If URL points to an ActivityPub Collection, the
-   links will be followed until max-depth is reached. Will return cached
-   results if they exist in memory."
-  ([user-id] (fetch-users user-id 3 0))
-  ([user-id max-depth] (fetch-users user-id max-depth 0))
-  ([user-id max-depth current-depth]
+   links will be followed until max-depth is reached (default 3). Will return
+   cached results if they exist in memory."
+  ([remote-id] (fetch-users remote-id 3 0))
+  ([remote-id max-depth] (fetch-users remote-id max-depth 0))
+  ([remote-id max-depth current-depth]
    (when (< current-depth max-depth)
      ((:get-v user-cache)
-      user-id
-      (fn []
-        (when-let [response (client/get user-id {:as :json
-                                                 :throw-exceptions false
-                                                 :ignore-unknown-host? true
-                                                 :headers {"Accept" "application/activity+json"}})]
+      remote-id
+      (fn [] 
+        (when-let [response (client/get remote-id {:as :json
+                                                   :throw-exceptions false
+                                                   :ignore-unknown-host? true
+                                                   :headers {"Accept" "application/activity+json"}})]
           (let [body (:body response)
-                depth' (inc current-depth)] 
-            (condp = (:type body)
-              "OrderedCollection" (concat (fetch-users (:first body) depth'))
-              "Collection" (concat (fetch-users (:first body) depth'))
-              "OrderedCollectionPage" (concat (mapcat #(fetch-users % depth') (:orderedItems body))
-                                              (if (:next body)
-                                                (fetch-users (:next body) current-depth)
-                                                []))
-              "CollectionPage" (concat (mapcat #(fetch-users % depth') (:items body))
-                                       (if (:next body)
-                                         (fetch-users (:next body) current-depth)
-                                         []))
-              "Person" [body]
-              (println (str "Unknown response for ID " user-id))))))))))
+                depth' (inc current-depth)
+                type (:type body)]
+            (cond
+              (or (= type "OrderedCollection")
+                  (= type "Collection"))
+              (fetch-users (:first body) max-depth depth')
+
+              (= type "OrderedCollectionPage")
+              (concat (mapcat #(fetch-users % max-depth depth') (:orderedItems body))
+                      (if (:next body)
+                        (fetch-users (:next body) max-depth current-depth)
+                        []))
+
+              (= type "CollectionPage")
+              (concat (mapcat #(fetch-users % depth') (:items body))
+                      (if (:next body)
+                        (fetch-users (:next body) max-depth current-depth)
+                        []))
+
+              (= type "Person") [body]
+
+              :else (println (str "Unknown response for ID " remote-id))))))))))
 
 (defn fetch-user
   "Fetches the actor located at user-id from a remote server. Links to remote
@@ -82,6 +90,26 @@
    :publicKey {:id (str user-id "#main-key")
                :owner user-id
                :publicKeyPem (or public-key "")}})
+
+(defn delivery-targets
+  "Returns the distinct inbox locations for the audience of the activity.
+   Following the ActivityPub spec, this includes the :to, :bto, :cc, :bcc, and
+   :audience fields while also removing the author's own address. If the user's
+   server supports a sharedInbox, that location is returned instead."
+  [activity]
+  (let [actor-id (:actor activity)
+        remote-ids (-> activity
+                       (select-keys [:to :bto :cc :bcc :audience])
+                       (vals)
+                       (flatten)
+                       (distinct))]
+    (->> remote-ids
+         (mapcat fetch-users)
+         (group-by #(or (get-in % [:endpoints :sharedInbox])
+                        (get % :inbox)))
+         (keys)
+         (distinct)
+         (remove #(= % actor-id)))))
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 
