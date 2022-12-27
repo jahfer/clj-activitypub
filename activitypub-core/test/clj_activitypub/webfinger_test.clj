@@ -13,6 +13,17 @@
     (is (= "https://example.com/.well-known/webfinger?resource=acct%3Ajahfer%40example.com"
            (webfinger/resource-url "example.com" "jahfer")))))
 
+(deftest parse-handle
+  (testing "Parses account to username and domain"
+    (is (= (webfinger/parse-handle "jahfer@example.com")
+           {:username "jahfer" :domain "example.com"})))
+  (testing "Parses account with leading @-sign"
+    (is (= (webfinger/parse-handle "@jahfer@example.com")
+           {:username "jahfer" :domain "example.com"})))
+  (testing "Parses username when domain is not provided"
+    (is (= (webfinger/parse-handle "@jahfer")
+           {:username "jahfer" :domain nil}))))
+
 (deftest fetch-user-id
   (testing "Retrieves user-id from remote webfinger endpoint"
     (webfinger/reset-user-id-cache)

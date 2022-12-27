@@ -21,17 +21,6 @@
              (select-keys (core/config data)
                           [:domain :username :base-url :user-id :public-key]))))))
 
-(deftest parse-handle
-  (testing "Parses account to username and domain"
-    (is (= (core/parse-handle "jahfer@example.com") 
-           {:username "jahfer" :domain "example.com"}))) 
-  (testing "Parses account with leading @-sign"
-    (is (= (core/parse-handle "@jahfer@example.com")
-           {:username "jahfer" :domain "example.com"})))
-  (testing "Parses username when domain is not provided"
-    (is (= (core/parse-handle "@jahfer")
-           {:username "jahfer" :domain nil}))))
-
 (deftest actor)
 
 (deftest fetch-user

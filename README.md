@@ -3,7 +3,7 @@
 > **Warning**
 > This is very much a work-in-progress. Only a tiny bit of the ActivityPub spec is implemented, and it definitely does not conform to all of the nuances expected _yet_.
 
-`clj-activitypub` is intended as a set of utilities that can be combined together to create a fully-functional ActivityPub server.
+`clj-activitypub` is a set of utilities that can be combined together to create a fully-functional ActivityPub server.
 
 ### Libraries
 - `activitypub-core` — The base functionality for generating HTTP headers (i.e. `Signature`, `Digest`), building ActivityPub activities and objects, and sending requests to remote servers.
@@ -30,10 +30,10 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ;;; Retrieve the account details from its home server
 (def account
  (-> account-handle
-   (activitypub/parse-handle)
-   (webfinger/fetch-user-id)
-   (activitypub/fetch-user)
-   (select-keys [:name :preferredUsername :summary])))
+     (webfinger/parse-handle)
+     (webfinger/fetch-user-id)
+     (activitypub/fetch-user)
+     (select-keys [:name :preferredUsername :summary])))
 
 ;;; examine what you got back!
 (pprint account) ;; => ({:name "Jahfer",

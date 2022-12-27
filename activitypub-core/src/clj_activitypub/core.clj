@@ -20,14 +20,6 @@
      :private-key (when private-key
                     (crypto/private-key private-key))}))
 
-(defn parse-handle
-  "Given an ActivityPub handle (e.g. @jahfer@mastodon.social), produces
-   a map containing {:domain ... :username ...}."
-  [handle]
-  (let [[username domain] (filter #(not (str/blank? %))
-                                  (str/split handle #"@"))]
-    {:domain domain :username username}))
-
 (def ^:private user-cache (thread-cache/make))
 
 (defn reset-user-cache

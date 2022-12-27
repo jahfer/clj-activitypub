@@ -1,7 +1,8 @@
 (ns clj-activitypub.webfinger
   (:require [clj-http.client :as client]
             [clj-activitypub.internal.http-util :as http]
-            [clj-activitypub.internal.thread-cache :as thread-cache]))
+            [clj-activitypub.internal.thread-cache :as thread-cache]
+            [clojure.string :as str]))
 
 (def remote-uri-path "/.well-known/webfinger")
 
@@ -14,6 +15,14 @@
   (let [resource (resource-str domain username)
         query-str (http/encode-url-params (merge params {:resource resource}))]
     (str "https://" domain remote-uri-path "?" query-str)))
+
+(defn parse-handle
+  "Given an ActivityPub handle (e.g. @jahfer@mastodon.social), produces
+   a map containing {:domain ... :username ...}."
+  [handle]
+  (let [[username domain] (filter #(not (str/blank? %))
+                                  (str/split handle #"@"))]
+    {:domain domain :username username}))
 
 (def ^:private user-id-cache
   (thread-cache/make))
