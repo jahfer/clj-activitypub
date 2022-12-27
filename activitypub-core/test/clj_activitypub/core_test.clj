@@ -1,12 +1,9 @@
 (ns clj-activitypub.core-test
   (:require [clojure.test :as t :refer (is deftest testing)]
-            [clj-activitypub.core :as core]
-            [clj-activitypub.internal.http-util :as http-util]
-            [clj-activitypub.test-support.http :refer [http-stubs]]
-            [clj-http.fake :refer [with-fake-routes-in-isolation]]))
+            [clj-activitypub.core :as core]))
 
 (defn mock-date []
-  (str "Tue, 29 Nov 2022 12:47:08 GMT"))
+  (str "2022-12-27T20:46:05.915189Z"))
 
 (deftest config
   (testing "#config creates hash of expected results"
@@ -23,58 +20,6 @@
 
 (deftest actor)
 
-(deftest fetch-user
-  (testing "Performs GET request, returning the response body"
-    (core/reset-user-cache)
-    (with-fake-routes-in-isolation http-stubs
-      (let [user-id "https://example.com/users/jahfer"]
-        (is (= {:inbox "https://example.com/users/jahfer/inbox"
-                :outbox "https://example.com/users/jahfer/outbox"
-                :name "Jahfer"}
-               (select-keys (core/fetch-user user-id)
-                            [:inbox :outbox :name]))))))
-  (testing "Retrieves data from cache if exists"
-    (core/reset-user-cache)
-    (let [user-id "https://example.com/users/jahfer"]
-      (with-fake-routes-in-isolation http-stubs
-        (core/fetch-user user-id)) ;; call once with stub to cache results
-      (with-fake-routes-in-isolation {}
-        (core/fetch-user user-id)))))
-
-(deftest fetch-users 
-  (testing "Performs GET request, returning the response body"
-    (core/reset-user-cache)
-    (with-fake-routes-in-isolation http-stubs
-      (let [user-id "https://example.com/users/jahfer"]
-        (is (= [{:inbox "https://example.com/users/jahfer/inbox"
-                 :outbox "https://example.com/users/jahfer/outbox"
-                 :name "Jahfer"}]
-               (map #(select-keys % [:inbox :outbox :name])
-                    (core/fetch-users user-id)))))))
-  (testing "Retrieves data from cache if exists"
-    (core/reset-user-cache)
-    (let [user-id "https://example.com/users/jahfer"]
-      (with-fake-routes-in-isolation http-stubs
-         ;; call once with stub to cache results
-        (core/fetch-users user-id))
-      (with-fake-routes-in-isolation {}
-        (core/fetch-users user-id)))))
-
-(deftest auth-headers
-  (testing "Accepts request data and returns the headers with auth attributes included"
-    (let [headers {"Test" "header example"
-                   "Another" 123}
-          body "Hello world!"]
-      (is (= (core/auth-headers
-              (core/config {:domain "example.com"
-                            :username "jahfer"
-                            :private-key (slurp "../keys/test_private.pem")})
-              {:headers headers :body body})
-             {"Test" "header example"
-              "Another" 123
-              "Signature" "keyId=\"https://example.com/users/jahfer\",headers=\"(request-target) host date digest\",signature=\"CFrLNZJNvo0/w94nnL29m0zZpIgqKRuv4QhRQ2HSXBf1AB3Y4OfdUifwlKwwT9RK8fibOkvWUdut8XD8OE82gMGVlZ6WpmiYt8OFo4lKpkxJxriGX0uRP0UyO4GZqgqBC1peW7LTOFfjwjYutwxtrB9gl3me8YPN5GhnLnwVkh1k9deYlqJsDRChPmUVnPwnv8lYdK9igBLrJWd3o0BhJVtD8gV2XX/5TGxjFvkgBVlpzVF9HFJwGLTaz0g0Xb4ny8KOn6CmLPb37EOTc8YABv0TbtqVDXlTygmFyJUu/19dOaOrIBCCKQkjOgVLYs4M4YMt+4Hc6ri/D3xr3CGssA==\""
-              "Digest" "sha-256=wFNeS+K3n/2TKRMFQ2v4iTFOSj+uwF7P/Lt98xrZ5Ro="})))))
-
 (deftest obj
   (testing "obj :note returns expected hash" 
     (let [config (core/config {:domain "example.com" :username "jahfer"})
@@ -86,7 +31,7 @@
               "inReplyTo" ""
               "content" "Hello world!"
               "to" "https://www.w3.org/ns/activitystreams#Public"}
-             (with-redefs [http-util/date mock-date]
+             (with-redefs [core/date mock-date]
                (obj {:id 1 :type :note :content "Hello world!"})))))))
 
 (deftest activity

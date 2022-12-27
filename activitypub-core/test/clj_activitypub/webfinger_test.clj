@@ -26,14 +26,14 @@
 
 (deftest fetch-user-id
   (testing "Retrieves user-id from remote webfinger endpoint"
-    (webfinger/reset-user-id-cache)
+    (webfinger/reset-user-id-cache!)
     (with-fake-routes-in-isolation http-stubs
       (is (= "https://example.com/users/jahfer"
-           (webfinger/fetch-user-id :domain "example.com" :username "jahfer")))))
+           (webfinger/fetch-user-id! :domain "example.com" :username "jahfer")))))
   (testing "Retrieves cached results without performing a network call"
-    (webfinger/reset-user-id-cache)
+    (webfinger/reset-user-id-cache!)
     (with-fake-routes-in-isolation http-stubs
        ;; call once with stub to cache results
-      (webfinger/fetch-user-id :domain "example.com" :username "jahfer"))
+      (webfinger/fetch-user-id! :domain "example.com" :username "jahfer"))
     (with-fake-routes-in-isolation {}
-      (webfinger/fetch-user-id :domain "example.com" :username "jahfer"))))
+      (webfinger/fetch-user-id! :domain "example.com" :username "jahfer"))))

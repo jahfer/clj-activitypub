@@ -22,6 +22,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ;; Fetching user account on remote server
 (require '[clj-activitypub.core :as activitypub])
 (require '[clj-activitypub.webfinger :as webfinger])
+(require '[clj-activitypub.net :as activitypub-net])
 (require '[clojure.pprint :refer [pprint]])
 
 ;;; Use any ActivityPub account handle you like
@@ -31,8 +32,8 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 (def account
  (-> account-handle
      (webfinger/parse-handle)
-     (webfinger/fetch-user-id)
-     (activitypub/fetch-user)
+     (webfinger/fetch-user-id!)
+     (activitypub-net/fetch-user!)
      (select-keys [:name :preferredUsername :summary])))
 
 ;;; examine what you got back!
@@ -42,15 +43,22 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ```
 
 ```clj
+(def config
+  (activitypub/config {:domain base-domain
+                       :username "jahfer"}))
+
+(def my-note
+  (activitypub/obj config {:id 1
+                           :type :note
+                           :content "Hello world!"})
+
 ;; Submitting a Create activity for an Object to remote server
-(let [config (activitypub/config {:domain base-domain :username "jahfer"})
-      body (->> (obj config {:id 1 :type :note :content "Hello world!"})
-                (activity config :create))
-      request {:headers {"Host" "mastodon.social" "Date" (http/date)}
+(let [body (activitypub/activity config :create my-note)
+      request {:headers {"Host" "mastodon.social"}
                :body (json/write-str body)}]
   (client/post "https://mastodon.social/inbox"
                (assoc request
-                      :headers (activitypub/auth-headers config request)
+                      :headers (activitypub-net/auth-headers config request)
                       :throw-exceptions false)))
 ```
 

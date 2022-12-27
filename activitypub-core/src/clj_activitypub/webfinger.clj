@@ -27,13 +27,13 @@
 (def ^:private user-id-cache
   (thread-cache/make))
 
-(defn reset-user-id-cache
+(defn reset-user-id-cache!
   "Removes all entries from the user-id cache, which is populated with results
    from [[fetch-user-id]]."
   []
   ((:reset user-id-cache)))
 
-(defn fetch-user-id
+(defn fetch-user-id!
   "Follows the webfinger request to a remote domain, retrieving the ID of the
    requested account. Expected to return a string in the form of a URL."
   [& {:keys [domain username]}]
