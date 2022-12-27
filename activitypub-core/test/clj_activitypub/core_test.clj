@@ -66,8 +66,9 @@
                    "Another" 123}
           body "Hello world!"]
       (is (= (core/auth-headers
-              (core/config (assoc (core/parse-handle "@jahfer@example.com")
-                                  :private-key (slurp "../keys/test_private.pem")))
+              (core/config {:domain "example.com"
+                            :username "jahfer"
+                            :private-key (slurp "../keys/test_private.pem")})
               {:headers headers :body body})
              {"Test" "header example"
               "Another" 123
@@ -76,7 +77,7 @@
 
 (deftest obj
   (testing "obj :note returns expected hash" 
-    (let [config (core/config (core/parse-handle "@jahfer@example.com"))
+    (let [config (core/config {:domain "example.com" :username "jahfer"})
           {:keys [obj]} (core/with-config config)]
       (is (= {"id" "https://example.com/users/jahfer/notes/1"
               "type" "Note" 
@@ -90,7 +91,7 @@
 
 (deftest activity
   (testing "activity :create returns expected hash"
-    (let [config (core/config (core/parse-handle "@jahfer@example.com"))]
+    (let [config (core/config {:domain "example.com" :username "jahfer"})]
       (is (= {"@context" ["https://www.w3.org/ns/activitystreams"
                           "https://w3id.org/security/v1"]
               "type" "Create"
@@ -99,7 +100,7 @@
              (core/activity config :create {"my" "object"})))))
   
   (testing "activity :delete returns expected hash"
-    (let [config (core/config (core/parse-handle "@jahfer@example.com"))]
+    (let [config (core/config {:domain "example.com" :username "jahfer"})]
       (is (= {"@context" ["https://www.w3.org/ns/activitystreams"
                           "https://w3id.org/security/v1"]
               "type" "Delete"
