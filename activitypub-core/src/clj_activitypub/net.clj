@@ -3,8 +3,7 @@
             [clj-activitypub.internal.crypto :as crypto]
             [clj-activitypub.internal.http-util :as http]
             [clj-http.client :as client]
-            [clojure.string :as str]
-            [clj-http.headers :as headers]))
+            [clojure.string :as str]))
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 
@@ -36,8 +35,7 @@
 (defn auth-headers
   "Given a config and request map of {:body ... :headers ...}, returns the
    original set of headers with Signature and Digest attributes appended. If
-   Date is not in the original header set, it will also be appended to the
-   result."
+   Date is not in the original header set, it will also be appended."
   [config {:keys [body headers]}]
   (let [digest (http/digest body)
         headers (cond-> headers
