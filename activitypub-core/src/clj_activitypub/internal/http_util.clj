@@ -4,6 +4,12 @@
            (java.time OffsetDateTime ZoneOffset)
            (java.time.format DateTimeFormatter)))
 
+(def GET-config
+  {:as :json
+   :throw-exceptions false
+   :ignore-unknown-host? true
+   :headers {"Accept" "application/activity+json"}})
+
 (defn encode-url-params [params]
   (->> params
        (reduce-kv

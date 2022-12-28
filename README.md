@@ -53,7 +53,7 @@
 
 ### Pushing data to remote servers
 
-Before POSTing data to a remote server, you'll want to create a local key/value pair in the `/keys` directory.
+Before POSTing data to a remote server, you'll want to create a local key/value pair in the `/keys` directory. You'll also need a corresponding HTTP endpoint to serve the actor data, which is used to verify the signature of the message by the remote server.
 
 ```bash
 $ openssl genrsa -out keys/private.pem 2048
@@ -65,7 +65,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 (require '[clj-http.client :as client])
 
 (def config
-  (activitypub/config {:domain base-domain
+  (activitypub/config {:domain "ottawa.place"
                        :username "jahfer"}))
 
 (def my-note
@@ -76,7 +76,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 (let [body (activitypub/activity config :create my-note)
       request {:headers {"Host" "mastodon.social"}
                :body (json/write-str body)}]
-  ;;; Submit our note to the shared inbox for mastodon.social
+  ;;; POST our note to the shared inbox for mastodon.social
   (client/post "https://mastodon.social/inbox"
                (assoc request
                       :headers (activitypub-net/auth-headers config request)

@@ -67,34 +67,18 @@
      ((:get-v user-cache)
       remote-id
       (fn []
-        (when-let [response (client/get remote-id {:as :json
-                                                   :throw-exceptions false
-                                                   :ignore-unknown-host? true
-                                                   :headers {"Accept" "application/activity+json"}})]
-          (let [body (:body response)
-                depth' (inc current-depth)
+        (when-let [response (client/get remote-id http/GET-config)]
+          (let [depth' (inc current-depth)
+                body (:body response)
                 type (:type body)]
-            (cond
-              (or (= type "OrderedCollection")
-                  (= type "Collection"))
-              (fetch-users! (:first body) max-depth depth')
-
-              (= type "OrderedCollectionPage")
-              (concat (mapcat #(fetch-users! % max-depth depth') (:orderedItems body))
-                      (if (:next body)
-                        (fetch-users! (:next body) max-depth current-depth)
-                        []))
-
-              (= type "CollectionPage")
-              (concat (mapcat #(fetch-users! % max-depth depth') (:items body))
-                      (if (:next body)
-                        (fetch-users! (:next body) max-depth current-depth)
-                        []))
-              
-              (or (= type "Person")
-                  (= type "Service")) [body]
-
-              :else (println (str "Unknown response for ID " remote-id))))))))))
+            (condp some (if (coll? type) type [type])
+              #{"Person" "Service"} [body]
+              #{"OrderedCollection" "Collection"} (fetch-users! (:first body) max-depth depth')
+              #{"OrderedCollectionPage" "CollectionPage"}
+              (cond-> #(fetch-users! % max-depth depth')
+                (or (:orderedItems body)
+                    (:items body)) (map (or (:orderedItems body) (:items body)))
+                (:next body) (concat (fetch-users! (:next body) max-depth current-depth)))))))))))
 
 (defn fetch-user!
   "Fetches the actor located at user-id from a remote server. Links to remote
