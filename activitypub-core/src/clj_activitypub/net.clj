@@ -70,15 +70,17 @@
         (when-let [response (client/get remote-id http/GET-config)]
           (let [depth' (inc current-depth)
                 body (:body response)
-                type (:type body)]
+                type (:type body)
+                recur-fetch #(fetch-users! % max-depth depth')]
             (condp some (if (coll? type) type [type])
               #{"Person" "Service"} [body]
-              #{"OrderedCollection" "Collection"} (fetch-users! (:first body) max-depth depth')
+              #{"OrderedCollection" "Collection"} (recur-fetch (:first body))
               #{"OrderedCollectionPage" "CollectionPage"}
-              (cond-> #(fetch-users! % max-depth depth')
+              (cond-> recur-fetch
                 (or (:orderedItems body)
                     (:items body)) (map (or (:orderedItems body) (:items body)))
-                (:next body) (concat (fetch-users! (:next body) max-depth current-depth)))))))))))
+                (:next body) (concat 
+                              (fetch-users! (:next body) max-depth current-depth)))))))))))
 
 (defn fetch-user!
   "Fetches the actor located at user-id from a remote server. Links to remote
