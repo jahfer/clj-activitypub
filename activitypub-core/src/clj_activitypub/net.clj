@@ -80,22 +80,19 @@
               (fetch-users! (:first body) max-depth depth')
 
               (= type "OrderedCollectionPage")
-              (cond-> (map #(fetch-users! % max-depth depth') (:orderedItems body))
-                (:next body) (conj (fetch-users! (:next body) max-depth current-depth))
-                true concat)
-
-              ;; (concat (mapcat #(fetch-users % max-depth depth') (:orderedItems body))
-              ;;         (if (:next body)
-              ;;           (fetch-users (:next body) max-depth current-depth)
-              ;;           []))
-
-              (= type "CollectionPage")
-              (concat (mapcat #(fetch-users! % depth') (:items body))
+              (concat (mapcat #(fetch-users! % max-depth depth') (:orderedItems body))
                       (if (:next body)
                         (fetch-users! (:next body) max-depth current-depth)
                         []))
 
-              (= type "Person") [body]
+              (= type "CollectionPage")
+              (concat (mapcat #(fetch-users! % max-depth depth') (:items body))
+                      (if (:next body)
+                        (fetch-users! (:next body) max-depth current-depth)
+                        []))
+              
+              (or (= type "Person")
+                  (= type "Service")) [body]
 
               :else (println (str "Unknown response for ID " remote-id))))))))))
 
