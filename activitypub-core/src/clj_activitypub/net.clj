@@ -68,18 +68,16 @@
       remote-id
       (fn []
         (when-let [response (client/get remote-id http/GET-config)]
-          (let [depth' (inc current-depth)
-                body (:body response)
+          (let [body (:body response)
                 type (:type body)
-                recur-fetch #(fetch-users! % max-depth depth')]
+                recur-fetch #(fetch-users! % max-depth (inc current-depth))]
             (condp some (if (coll? type) type [type])
               #{"Person" "Service"} [body]
               #{"OrderedCollection" "Collection"} (recur-fetch (:first body))
               #{"OrderedCollectionPage" "CollectionPage"}
               (cond-> recur-fetch
-                (or (:orderedItems body)
-                    (:items body)) (map (or (:orderedItems body) (:items body)))
-                (:next body) (concat 
+                (or (:orderedItems body) (:items body)) (map (or (:orderedItems body) (:items body)))
+                (:next body) (concat
                               (fetch-users! (:next body) max-depth current-depth)))))))))))
 
 (defn fetch-user!
