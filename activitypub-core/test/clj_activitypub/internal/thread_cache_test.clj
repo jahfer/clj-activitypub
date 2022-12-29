@@ -57,3 +57,12 @@
       ((:cache-kv cache) :key-1 "Hola")
       (is (= [[:key-2 "World"] [:key-1 "Hola"]]
              ((:lru cache)))))))
+
+(deftest reset
+  (testing "reset clears values in cache" 
+    (let [v (ref 0)
+          compute-fn #(dosync (alter v inc))
+          cache (tc/make)]
+      (is (= 1 ((:get-v cache) "my-key" compute-fn)))
+      ((:reset cache))
+      (is (= 2 ((:get-v cache) "my-key" compute-fn))))))

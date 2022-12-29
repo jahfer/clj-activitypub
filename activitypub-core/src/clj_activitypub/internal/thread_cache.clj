@@ -41,4 +41,5 @@
        {:cache-kv cache-kv 
         :get-v get-v
         :cache-if-nil cache-if-nil
-        :lru lru}))))
+        :lru lru
+        :reset (fn [] (dosync (ref-set store {})))}))))
