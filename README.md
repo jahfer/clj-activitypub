@@ -92,7 +92,7 @@ There are two libraries within this package: `activitypub-core` and `activitypub
 $ clj -X:test
 ```
 
-## Reference
+## References
 - https://www.w3.org/TR/activitypub/
 - https://www.w3.org/TR/activitystreams-core/
 - https://www.w3.org/ns/activitystreams#Public
