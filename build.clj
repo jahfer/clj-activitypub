@@ -25,7 +25,7 @@
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(defn jar [_] 
+(defn jar [_]
   (doall
    (for [lib-entry libs]
      (let [{:keys [lib src jar-file basis dir]} lib-entry
@@ -39,6 +39,21 @@
                     :target-dir target-dir})
        (b/jar {:class-dir target-dir
                :jar-file jar-file})))))
+
+(defn install
+  "Create a jar file and install in local Maven repo."
+  [_]
+  (doall
+   (for [lib-entry libs]
+     (let [{:keys [lib jar-file basis dir]} lib-entry
+           target-dir (str class-dir dir)]
+       (b/install {:basis basis;; - required, used for :mvn/local-repo
+                   :lib lib ;; - required, lib symbol
+;; :classifier ;; - classifier string, if needed
+                   :version version ;; - required, string version
+                   :jar-file jar-file ;; - required, path to jar file
+                   :class-dir target-dir ;;- required, used to find the pom file
+                   })))))
 
 (defn deploy [_]
   (doall
