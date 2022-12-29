@@ -45,17 +45,19 @@
 
 (defmethod obj :note
   [{:keys [user-id]}
-   {:keys [id published inReplyTo content to]
+   {:keys [id published inReplyTo content to cc]
     :or {published (date)
          inReplyTo ""
-         to "https://www.w3.org/ns/activitystreams#Public"}}]
+         to "https://www.w3.org/ns/activitystreams#Public"
+         cc []}}]
   {"id" (str user-id "/notes/" id)
    "type" "Note"
    "published" published
    "attributedTo" user-id
    "inReplyTo" inReplyTo
    "content" content
-   "to" to})
+   "to" to
+   "cc" cc})
 
 (defmulti activity
   "Produces a map representing an ActivityPub activity which can be serialized
@@ -68,6 +70,9 @@
                "https://w3id.org/security/v1"]
    "type" "Create"
    "actor" user-id
+   "published" (get data "published")
+   "to" (get data "to")
+   "cc" (get data "cc")
    "object" data})
 
 (defmethod activity :delete [{:keys [user-id]} _ data]
@@ -75,6 +80,8 @@
                "https://w3id.org/security/v1"]
    "type" "Delete"
    "actor" user-id
+   "to" (get data "to")
+   "cc" (get data "cc")
    "object" data})
 
 (defn with-config

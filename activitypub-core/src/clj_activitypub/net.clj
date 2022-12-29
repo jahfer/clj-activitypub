@@ -3,7 +3,8 @@
             [clj-activitypub.internal.crypto :as crypto]
             [clj-activitypub.internal.http-util :as http]
             [clj-http.client :as client]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.walk :refer [stringify-keys]]))
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 
@@ -36,7 +37,7 @@
   "Given a config and request map of {:body ... :headers ...}, returns the
    original set of headers with Signature and Digest attributes appended. If
    Date is not in the original header set, it will also be appended."
-  [config {:keys [body headers]}]
+  [config {:keys [body headers] :or {headers {}}}]
   (let [digest (http/digest body)
         headers (cond-> headers
                   (not (contains? headers "Date")) (assoc "Date" (http/date)))
@@ -72,13 +73,16 @@
                 type (:type body)
                 recur-fetch #(fetch-users! % max-depth (inc current-depth))]
             (condp some (if (coll? type) type [type])
-              #{"Person" "Service"} [body]
+              #{"Person" "Service" "Application"} [body]
               #{"OrderedCollection" "Collection"} (recur-fetch (:first body))
               #{"OrderedCollectionPage" "CollectionPage"}
               (cond-> recur-fetch
                 (or (:orderedItems body) (:items body)) (map (or (:orderedItems body) (:items body)))
                 (:next body) (concat
-                              (fetch-users! (:next body) max-depth current-depth)))))))))))
+                              (fetch-users! (:next body) max-depth current-depth)))
+              (println (if (nil? type)
+                         (str "Type not set for user at " remote-id)
+                         (str "Unknown user type `" type "` for user " remote-id)))))))))))
 
 (defn fetch-user!
   "Fetches the actor located at user-id from a remote server. Links to remote
@@ -93,10 +97,12 @@
    Following the ActivityPub spec, this includes the :to, :bto, :cc, :bcc, and
    :audience fields while also removing the author's own address. If the user's
    server supports a sharedInbox, that location is returned instead."
-  [activity]
-  (let [actor-id (:actor activity)
-        remote-ids (-> activity
-                       (select-keys [:to :bto :cc :bcc :audience])
+  [activity] 
+  (let [activity (stringify-keys activity)
+        object (get activity "object")
+        actor-id (get activity "actor")
+        remote-ids (-> object
+                       (select-keys ["to" "bto" "cc" "bcc" "audience"])
                        (vals)
                        (flatten)
                        (distinct))]
