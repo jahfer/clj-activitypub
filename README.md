@@ -84,8 +84,8 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
       (client/post
         inbox
         (assoc request
-          :headers (activitypub-net/auth-headers activity-config request)
-          :throw-exceptions false)))))
+               :headers (activitypub-net/auth-headers activity-config request)
+               :throw-exceptions false)))))
 ```
 
 ## Running tests
