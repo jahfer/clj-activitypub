@@ -9,7 +9,7 @@
 
 (defn config
   "Creates hash of computed data relevant for most ActivityPub utilities."
-  [{:keys [domain username username-route public-key private-key]
+  [{:keys [domain username name username-route public-key private-key]
     :or {username-route "/users/"
          public-key nil
          private-key nil}}]
@@ -17,6 +17,7 @@
     {:domain domain
      :base-url base-url
      :username username
+     :name (or name username)
      :user-id (str base-url username-route username)
      :public-key public-key
      :private-key (when private-key
@@ -25,11 +26,12 @@
 (defn actor
   "Accepts a config, and returns a map in the form expected by the ActivityPub
    spec. See https://www.w3.org/TR/activitypub/#actor-objects for reference."
-  [{:keys [user-id username public-key]}]
+  [{:keys [user-id username name public-key]}]
   {"@context" ["https://www.w3.org/ns/activitystreams"
                "https://w3id.org/security/v1"]
    :id user-id
    :type "Person"
+   :name name
    :preferredUsername username
    :inbox (str user-id "/inbox")
    :outbox (str user-id "/outbox")

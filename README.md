@@ -63,24 +63,29 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 ```clj
 ;; Submitting a Create activity for an Object to remote server
 (require '[clj-http.client :as client])
+(require '[clojure.data.json :as json])
+(import java.net.URI)
 
-(def config
-  (activitypub/config {:domain "ottawa.place"
-                       :username "jahfer"}))
+(def activity
+  (->> {:id 2
+        :type :note
+        :cc "https://mastodon.social/users/jahfer"
+        :content "<p>Hello world!</p>"}
+       (activitypub/obj activity-config)
+       (activitypub/activity activity-config :create)))
 
-(def my-note
-  (activitypub/obj config {:id 1
-                           :type :note
-                           :content "Hello world!"})
-
-(let [body (activitypub/activity config :create my-note)
-      request {:headers {"Host" "mastodon.social"}
-               :body (json/write-str body)}]
-  ;;; POST our note to the shared inbox for mastodon.social
-  (client/post "https://mastodon.social/inbox"
-               (assoc request
-                      :headers (activitypub-net/auth-headers config request)
-                      :throw-exceptions false)))
+;;; Fetch the inboxes connected to the :cc addresses
+(let [targets (activitypub-net/delivery-targets! activity)]
+  (doseq [inbox targets]
+    ;;; At minimum, the Host is required to build the authentication headers
+    (let [request {:headers {"Host" (.getHost (URI. inbox))}
+                   :body (json/write-str activity)}]
+      ;;; Submit request to remote inboxes
+      (client/post
+        inbox
+        (assoc request
+          :headers (activitypub-net/auth-headers activity-config request)
+          :throw-exceptions false)))))
 ```
 
 ## Running tests
