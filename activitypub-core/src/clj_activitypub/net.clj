@@ -1,5 +1,5 @@
 (ns clj-activitypub.net
-  (:require [clj-activitypub.internal.thread-cache :as thread-cache]
+  (:require [clj-activitypub.internal.thread-cache :as tc]
             [clj-activitypub.internal.crypto :as crypto]
             [clj-activitypub.internal.http-util :as http]
             [clj-http.client :as client]
@@ -49,13 +49,13 @@
            "Signature" (gen-signature-header config headers')
            "Digest" digest)))
 
-(def ^:private object-cache (thread-cache/make))
+(def ^:private object-cache (tc/make))
 
 (defn reset-object-cache!
   "Removes all entries from the object cache, which is populated with results
    from [[fetch-objects!]] or [[fetch-user!]]."
   []
-  ((:reset object-cache)))
+  (tc/reset object-cache))
 
 (def actor-type? #{"Person" "Service" "Application"})
 (def terminal-object-type? (union actor-type?))
@@ -77,10 +77,11 @@
 
 (defn- fetch-objects!
   [remote-id]
-  (let [fetch (:get-v object-cache)]
-    (fetch remote-id #(some-> (client/get remote-id http/GET-config)
-                              (:body)
-                              (resolve!)))))
+  (tc/fetch object-cache remote-id
+            #(some-> (try (client/get remote-id http/GET-config)
+                          (catch Exception _ nil))
+                     (:body)
+                     (resolve!))))
 
 (defn resolve!
   "Fetches the resource(s) located at remote-id from a remote server. Results
@@ -106,25 +107,26 @@
       object)))
 
 (defn delivery-targets!
-  "Returns the distinct inbox locations for the audience of the activity.
-   Following the ActivityPub spec, this includes the :to, :bto, :cc, :bcc, and
-   :audience fields while also removing the author's own address. If the user's
-   server supports a sharedInbox, that location is returned instead."
-  [activity] 
-  ;; TODO Look up addressing fields in target, inReplyTo, and tag,
-  ;; then retrieve their actor or attributedTo fields
-  (let [activity (stringify-keys activity)
-        object (get activity "object")
-        actor-id (get activity "actor")
-        remote-ids (-> object
-                       (select-keys ["to" "bto" "cc" "bcc" "audience"])
-                       (vals)
-                       (flatten)
-                       (distinct))]
-    (->> remote-ids
-         (mapcat fetch-objects!)
-         (group-by #(or (get-in % [:endpoints :sharedInbox])
-                        (get % :inbox)))
-         (keys)
+  "Returns the distinct inbox locations for the audience of the activity. This
+   includes the :to, :cc, :audience, :target, :inReplyTo, :object, and :tag
+   fields while also removing the author's own address. If the user's server
+   supports a sharedInbox, that location is returned instead."
+  [activity]
+  (let [activity (stringify-keys activity)]
+    (->> (map activity ["to" "cc" "audience" "target"
+                        "inReplyTo" "object" "tag"])
+         (flatten)
+         (map #(condp apply [%]
+                 map? (or (get % "actor")
+                          (get % "attributedTo")
+                          (when (actor-type? (get % "type"))
+                            (get % "id")))
+                 string? %
+                 nil))
+         (remove nil?)
          (distinct)
-         (remove #(= % actor-id)))))
+         (remove #(= % (get activity "actor")))
+         (mapcat resolve!)
+         (map #(or (get-in % [:endpoints :sharedInbox])
+                   (get % :inbox)))
+         (distinct))))

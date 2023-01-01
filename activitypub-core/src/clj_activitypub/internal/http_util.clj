@@ -6,8 +6,8 @@
 
 (def GET-config
   {:as :json
-   :throw-exceptions false
-   :ignore-unknown-host? true
+   :throw-exceptions true
+   :ignore-unknown-host? false
    :headers {"Accept" "application/activity+json"}})
 
 (defn encode-url-params [params]

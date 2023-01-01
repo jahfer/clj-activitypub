@@ -67,6 +67,7 @@
    See https://www.w3.org/TR/activitystreams-vocabulary/ for reference."
   (fn [_config activity-type _data] activity-type))
 
+;; Todo: make "object" a normal field
 (defmethod activity :create [{:keys [user-id]} _ data]
   {"@context" ["https://www.w3.org/ns/activitystreams"
                "https://w3id.org/security/v1"]

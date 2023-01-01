@@ -10,6 +10,12 @@
    (commute store assoc k
             (merge v {:read-at (current-time)}))))
 
+(defn fetch [cache & args]
+  (apply (:get-v cache) args))
+
+(defn reset [cache & args]
+  (apply (:reset cache) args))
+
 (defn make 
   "Creates a thread-local cache."
   ([] (make false))
