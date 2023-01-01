@@ -3,6 +3,7 @@
             [clj-activitypub.internal.crypto :as crypto]
             [clj-activitypub.internal.http-util :as http]
             [clj-http.client :as client]
+            [clojure.set :refer [union]]
             [clojure.string :as str]
             [clojure.walk :refer [stringify-keys]]))
 
@@ -48,49 +49,61 @@
            "Signature" (gen-signature-header config headers')
            "Digest" digest)))
 
-(def ^:private user-cache (thread-cache/make))
+(def ^:private object-cache (thread-cache/make))
 
-(defn reset-user-cache!
-  "Removes all entries from the user cache, which is populated with results
-   from [[fetch-users]] or [[fetch-user]]."
+(defn reset-object-cache!
+  "Removes all entries from the object cache, which is populated with results
+   from [[fetch-objects!]] or [[fetch-user!]]."
   []
-  ((:reset user-cache)))
+  ((:reset object-cache)))
 
-(defn fetch-users!
-  "Fetches the actor(s) located at remote-id from a remote server. Results are
-   returned as a collection. If URL points to an ActivityPub Collection, the
-   links will be followed until max-depth is reached (default 3). Will return
+(def actor-type? #{"Person" "Service" "Application"})
+(def terminal-object-type? (union actor-type?))
+(def collection-type? #{"OrderedCollection" "Collection"})
+(def collection-page-type? #{"OrderedCollectionPage" "CollectionPage"})
+(def any-collection-type? (union collection-type? collection-page-type?))
+
+(declare resolve!)
+
+(defn- resolve-collection! [object]
+  (let [type (:type object)]
+    (condp some (if (coll? type) type [type])
+      actor-type?           [object]
+      collection-type?      (resolve! (:first object))
+      collection-page-type? (let [items (or (:orderedItems object) (:items object))]
+                              (cond-> []
+                                items          (concat (map resolve! items))
+                                (:next object) (concat (resolve! (:next object))))))))
+
+(defn- fetch-objects!
+  [remote-id]
+  (let [fetch (:get-v object-cache)]
+    (fetch remote-id #(some-> (client/get remote-id http/GET-config)
+                              (:body)
+                              (resolve!)))))
+
+(defn resolve!
+  "Fetches the resource(s) located at remote-id from a remote server. Results
+   are returned as a collection. If URL points to an ActivityPub Collection,
+   the links will be followed until a resolved object is found. Will return
    cached results if they exist in memory."
-  ([remote-id] (fetch-users! remote-id 3 0))
-  ([remote-id max-depth] (fetch-users! remote-id max-depth 0))
-  ([remote-id max-depth current-depth]
-   (when (< current-depth max-depth)
-     ((:get-v user-cache)
-      remote-id
-      (fn []
-        (when-let [response (client/get remote-id http/GET-config)]
-          (let [body (:body response)
-                type (:type body)
-                recur-fetch #(fetch-users! % max-depth (inc current-depth))]
-            (condp some (if (coll? type) type [type])
-              #{"Person" "Service" "Application"} [body]
-              #{"OrderedCollection" "Collection"} (recur-fetch (:first body))
-              #{"OrderedCollectionPage" "CollectionPage"}
-              (cond-> recur-fetch
-                (or (:orderedItems body) (:items body)) (map (or (:orderedItems body) (:items body)))
-                (:next body) (concat
-                              (fetch-users! (:next body) max-depth current-depth)))
-              (println (if (nil? type)
-                         (str "Type not set for user at " remote-id)
-                         (str "Unknown user type `" type "` for user " remote-id)))))))))))
+  [str-or-obj]
+  (condp apply [str-or-obj]
+    string? (fetch-objects! str-or-obj)
+    map? (if (any-collection-type? (:type str-or-obj))
+           (resolve-collection! str-or-obj)
+           [str-or-obj])
+    list? str-or-obj
+    nil? []))
 
-(defn fetch-user!
-  "Fetches the actor located at user-id from a remote server. Links to remote
-   ActivityPub Collections will not be followed. If you wish to retrieve a list
-   of users, see [[fetch-users]]. Will return a cached result if it exists in
-   memory."
+(defn fetch-actor!
+  "Fetches the actor located at user-id from a remote server. If you wish to
+   retrieve a list of objects, see [[fetch-objects!]]. Will return a cached
+   result if it exists in memory."
   [user-id]
-  (first (fetch-users! user-id 1)))
+  (let [object (first (resolve! user-id))]
+    (when (actor-type? (:type object))
+      object)))
 
 (defn delivery-targets!
   "Returns the distinct inbox locations for the audience of the activity.
@@ -98,6 +111,8 @@
    :audience fields while also removing the author's own address. If the user's
    server supports a sharedInbox, that location is returned instead."
   [activity] 
+  ;; TODO Look up addressing fields in target, inReplyTo, and tag,
+  ;; then retrieve their actor or attributedTo fields
   (let [activity (stringify-keys activity)
         object (get activity "object")
         actor-id (get activity "actor")
@@ -107,7 +122,7 @@
                        (flatten)
                        (distinct))]
     (->> remote-ids
-         (mapcat fetch-users!)
+         (mapcat fetch-objects!)
          (group-by #(or (get-in % [:endpoints :sharedInbox])
                         (get % :inbox)))
          (keys)

@@ -30,7 +30,8 @@
               "attributedTo" "https://example.com/users/jahfer"
               "inReplyTo" ""
               "content" "Hello world!"
-              "to" "https://www.w3.org/ns/activitystreams#Public"}
+              "to" "https://www.w3.org/ns/activitystreams#Public"
+              "cc" []}
              (with-redefs [core/date mock-date]
                (obj {:id 1 :type :note :content "Hello world!"})))))))
 
@@ -41,6 +42,9 @@
                           "https://w3id.org/security/v1"]
               "type" "Create"
               "actor" "https://example.com/users/jahfer"
+              "published" nil
+              "to" nil
+              "cc" nil
               "object" {"my" "object"}}
              (core/activity config :create {"my" "object"})))))
   
@@ -50,5 +54,7 @@
                           "https://w3id.org/security/v1"]
               "type" "Delete"
               "actor" "https://example.com/users/jahfer"
+              "to" nil
+              "cc" nil
               "object" {"my" "object"}}
              (core/activity config :delete {"my" "object"}))))))

@@ -9,42 +9,42 @@
 (defn mock-date []
   (str "Tue, 29 Nov 2022 12:47:08 GMT"))
 
-(deftest fetch-user!
+(deftest fetch-actor!
   (testing "Performs GET request, returning the response body"
-    (net/reset-user-cache!)
+    (net/reset-object-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"]
         (is (= {:inbox "https://example.com/users/jahfer/inbox"
                 :outbox "https://example.com/users/jahfer/outbox"
                 :name "Jahfer"}
-               (select-keys (net/fetch-user! user-id)
+               (select-keys (net/fetch-actor! user-id)
                             [:inbox :outbox :name]))))))
   (testing "Retrieves data from cache if exists"
-    (net/reset-user-cache!)
+    (net/reset-object-cache!)
     (let [user-id "https://example.com/users/jahfer"]
       (with-fake-routes-in-isolation http-stubs
-        (net/fetch-user! user-id)) ;; call once with stub to cache results
+        (net/fetch-actor! user-id)) ;; call once with stub to cache results
       (with-fake-routes-in-isolation {}
-        (net/fetch-user! user-id)))))
+        (net/fetch-actor! user-id)))))
 
-(deftest fetch-users!
+(deftest resolve!
   (testing "Performs GET request, returning the response body"
-    (net/reset-user-cache!)
+    (net/reset-object-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"]
         (is (= [{:inbox "https://example.com/users/jahfer/inbox"
                  :outbox "https://example.com/users/jahfer/outbox"
                  :name "Jahfer"}]
                (map #(select-keys % [:inbox :outbox :name])
-                    (net/fetch-users! user-id)))))))
+                    (net/resolve! user-id)))))))
   (testing "Retrieves data from cache if exists"
-    (net/reset-user-cache!)
+    (net/reset-object-cache!)
     (let [user-id "https://example.com/users/jahfer"]
       (with-fake-routes-in-isolation http-stubs
          ;; call once with stub to cache results
-        (net/fetch-users! user-id))
+        (net/resolve! user-id))
       (with-fake-routes-in-isolation {}
-        (net/fetch-users! user-id)))))
+        (net/resolve! user-id)))))
 
 (deftest delivery-targets!)
 

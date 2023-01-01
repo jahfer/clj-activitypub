@@ -35,7 +35,7 @@
  (-> account-handle
      (webfinger/parse-handle)
      (webfinger/fetch-user-id!)
-     (activitypub-net/fetch-user!)
+     (activitypub-net/fetch-actor!)
      (select-keys [:name :preferredUsername :summary])))
 
 ;;; Examine what you got back!
@@ -47,7 +47,7 @@
 ```clj
 ;; Fetching a list of users from multiple servers
 (-> "https://mastodon.social/users/jahfer/followers"
-    (activitypub-net/fetch-users!)
+    (activitypub-net/resolve!)
     (count)) ;; => 80
 ```
 

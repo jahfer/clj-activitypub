@@ -27,6 +27,7 @@
              (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
                      :id (str "https://" (:server-name request) (:uri request) query-string)
                      :type	"OrderedCollection"
+                     :totalItems 0
                      :orderedItems []}
                     data))})))
 
