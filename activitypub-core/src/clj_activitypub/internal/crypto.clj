@@ -30,7 +30,7 @@
 (defn sign [data private-key] 
   (let [bytes (.getBytes data)
         signer (doto (Signature/getInstance "SHA256withRSA")
-              (.initSign private-key (SecureRandom.))
-              (.update bytes))]
+                 (.initSign private-key (SecureRandom.))
+                 (.update bytes))]
     (.sign signer)))
 

@@ -9,12 +9,6 @@
    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
    :body (json/write-str (core/actor actor))})
 
-(defn card-handler
-  [_request]
-  {:status 200
-   :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-   :body "{}"})
-
 (defn inbox-handler
   ([request]
    (inbox-handler request {}))
@@ -52,6 +46,5 @@
     (routes
      (POST "/inbox"    request (inbox-handler request))
      (GET "/outbox"    request (outbox-handler request))
-     (GET "/cards/:id" request (card-handler request))
      (GET "/"          request (actor-handler request (core/config {:domain domain
                                                                     :username username}))))))
