@@ -63,25 +63,42 @@
 (def collection-page-type? #{"OrderedCollectionPage" "CollectionPage"})
 (def any-collection-type? (union collection-type? collection-page-type?))
 
+
 (declare resolve!)
+(declare lazy-resolve!)
+
+(defn- ensure-seq [x]
+  (if (sequential? x) x [x]))
 
 (defn- resolve-collection! [object]
   (let [type (:type object)]
     (condp some (if (coll? type) type [type])
-      actor-type?           [object]
-      collection-type?      (resolve! (:first object))
+      collection-type?      (lazy-resolve! (:first object))
       collection-page-type? (let [items (or (:orderedItems object) (:items object))]
                               (cond-> []
-                                items          (concat (map resolve! items))
-                                (:next object) (concat (resolve! (:next object))))))))
+                                items          (concat (map lazy-resolve! items))
+                                (:next object) (concat (ensure-seq (lazy-resolve! (:next object)))))))))
 
 (defn- fetch-objects!
   [remote-id]
   (tc/fetch object-cache remote-id
-            #(some-> (try (client/get remote-id http/GET-config)
-                          (catch Exception _ nil))
-                     (:body)
-                     (resolve!))))
+            #(delay (do
+                      (println "Performing GET" remote-id)
+                      (some-> (try (client/get remote-id http/GET-config)
+                                   (catch Exception _ nil))
+                              (:body)
+                              (lazy-resolve!))))))
+
+(defn lazy-resolve!
+  [str-or-obj]
+  (condp apply [str-or-obj]
+    string? (fetch-objects! str-or-obj)
+    map? (if (any-collection-type? (:type str-or-obj))
+           (resolve-collection! str-or-obj)
+           str-or-obj)
+    sequential? str-or-obj
+    delay? str-or-obj
+    nil? []))
 
 (defn resolve!
   "Fetches the resource(s) located at remote-id from a remote server. Results
@@ -89,13 +106,16 @@
    the links will be followed until a resolved object is found. Will return
    cached results if they exist in memory."
   [str-or-obj]
-  (condp apply [str-or-obj]
-    string? (fetch-objects! str-or-obj)
-    map? (if (any-collection-type? (:type str-or-obj))
-           (resolve-collection! str-or-obj)
-           [str-or-obj])
-    list? str-or-obj
-    nil? []))
+  (let [result (-> str-or-obj 
+                   (lazy-resolve!)
+                   (ensure-seq))]
+    (letfn [(branch? [x] (or (delay? x)
+                             (sequential? x)))
+            (children [x] (map force (ensure-seq x)))]
+      (remove branch? (tree-seq branch? children result)))))
+
+;; (def coll [:a :b (delay [:c :d])])
+;; (remove #(-> % force coll?) (tree-seq #(-> % force coll?) #(-> % force seq) coll))
 
 (defn fetch-actor!
   "Fetches the actor located at user-id from a remote server. If you wish to
