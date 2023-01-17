@@ -1,9 +1,14 @@
 # clj-activitypub
 
+[![Clojars Project](https://img.shields.io/clojars/v/com.jahfer/clj-activitypub.svg?include_prereleases)](https://clojars.org/com.jahfer/clj-activitypub)
+
 > **Warning**
 > This is very much a work-in-progress. Only a tiny bit of the ActivityPub spec is implemented, and it definitely does not conform to all of the nuances expected _yet_.
 
 `clj-activitypub` is a set of utilities that can be combined together to create a fully-functional ActivityPub server.
+
+## Documentation
+Docs are available at https://cljdoc.org/d/com.jahfer/clj-activitypub/
 
 ## Libraries
 - `activitypub-core` — The base functionality for generating HTTP headers (i.e. `Signature`, `Digest`), building ActivityPub activities and objects, and sending requests to remote servers.
