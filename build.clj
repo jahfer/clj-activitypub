@@ -4,21 +4,22 @@
 
 (def version (format "0.%s" (b/git-count-revs nil)))
 
-(def libs [{:lib 'clj-activitypub/activitypub
+(def libs [{:lib 'com.jahfer/activitypub
             :src ["activitypub-core/src" "activitypub-ring/src"]
             :dir "clj-activitypub"
             :jar-file (format "target/%s-%s.jar" "clj-activitypub" version)
             :basis (b/create-basis {:project "deps.edn"})}
-           {:lib 'clj-activitypub/activitypub-core
-            :src ["activitypub-core/src"]
-            :dir "clj-activitypub-core"
-            :jar-file (format "target/%s-%s.jar" "clj-activitypub-core" version)
-            :basis (b/create-basis {:project "./clj_activitypub/activitypub-core/deps.edn"})}
-           {:lib 'clj-activitypub/activitypub-ring
-            :src ["activitypub-ring/src"]
-            :dir "clj-activitypub-ring"
-            :jar-file (format "target/%s-%s.jar" "clj-activitypub-ring" version)
-            :basis (b/create-basis {:project "./clj_activitypub/activitypub-ring/deps.edn"})}])
+          ;;  {:lib 'clj-activitypub/activitypub-core
+          ;;   :src ["activitypub-core/src"]
+          ;;   :dir "clj-activitypub-core"
+          ;;   :jar-file (format "target/%s-%s.jar" "clj-activitypub-core" version)
+          ;;   :basis (b/create-basis {:project "./clj_activitypub/activitypub-core/deps.edn"})}
+          ;;  {:lib 'clj-activitypub/activitypub-ring
+          ;;   :src ["activitypub-ring/src"]
+          ;;   :dir "clj-activitypub-ring"
+          ;;   :jar-file (format "target/%s-%s.jar" "clj-activitypub-ring" version)
+          ;;   :basis (b/create-basis {:project "./clj_activitypub/activitypub-ring/deps.edn"})}
+           ])
 
 (def class-dir "target/classes/")
 
@@ -58,7 +59,9 @@
 (defn deploy [_]
   (doall
    (for [lib-entry libs
-         :let [{:keys [lib jar-file]} lib-entry]]
+         :let [{:keys [lib jar-file dir]} lib-entry
+               target-dir (str class-dir dir)]]
      (dd/deploy {:installer :remote
+                 :sign-releases? true
                  :artifact jar-file
-                 :pom-file (b/pom-path {:lib lib :class-dir class-dir})}))))
+                 :pom-file (b/pom-path {:lib lib :class-dir target-dir})}))))

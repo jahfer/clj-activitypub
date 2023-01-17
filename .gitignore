@@ -6,3 +6,4 @@
 .calva
 *.pem
 target/
+*.pom.asc

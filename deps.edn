@@ -5,7 +5,11 @@
         mvxcvi/clj-pgp {:mvn/version "1.1.0"}
         org.bouncycastle/bcpkix-jdk18on {:mvn/version "1.72"}
         clj-http/clj-http {:mvn/version "3.12.3"}
-        cheshire/cheshire {:mvn/version "5.11.0"}}
+        cheshire/cheshire {:mvn/version "5.11.0"}
+        org.clojure/data.json {:mvn/version "2.4.0"}
+        ring/ring-core {:mvn/version "1.9.6"}
+        ring/ring-jetty-adapter {:mvn/version "1.9.6"}
+        compojure/compojure {:mvn/version "1.7.0"}}
  :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.5" :git/sha "9c738da"}
-                          slipset/deps-deploy {:mvn/version "RELEASE"}}
+                          io.github.slipset/deps-deploy {:git/sha "fd8ff2de9c4bda82a1c69c387d56217473b394be"}}
                    :ns-default build}}}
