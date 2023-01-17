@@ -4,7 +4,7 @@
 
 (def version (format "0.%s" (b/git-count-revs nil)))
 
-(def libs [{:lib 'com.jahfer/activitypub
+(def libs [{:lib 'com.jahfer/clj-activitypub
             :src ["activitypub-core/src" "activitypub-ring/src"]
             :dir "clj-activitypub"
             :jar-file (format "target/%s-%s.jar" "clj-activitypub" version)
