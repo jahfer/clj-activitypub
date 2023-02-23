@@ -9,8 +9,8 @@
 
 (defn config
   "Creates hash of computed data relevant for most ActivityPub utilities."
-  [{:keys [domain username name username-route public-key private-key]
-    :or {username-route "/users/"
+  [{:keys [domain username name user-route public-key private-key]
+    :or {user-route "/users/"
          public-key nil
          private-key nil}}]
   (let [base-url (str "https://" domain)]
@@ -18,7 +18,7 @@
      :base-url base-url
      :username username
      :name (or name username)
-     :user-id (str base-url username-route username)
+     :user-id (str base-url user-route username)
      :public-key public-key
      :private-key (when private-key
                     (crypto/private-key private-key))}))
@@ -35,6 +35,8 @@
    :preferredUsername username
    :inbox (str user-id "/inbox")
    :outbox (str user-id "/outbox")
+   :following (str user-id "/following")
+   :followers (str user-id "/followers")
    :publicKey {:id (str user-id "#main-key")
                :owner user-id
                :publicKeyPem (or public-key "")}})
@@ -85,6 +87,23 @@
    "actor" user-id
    "to" (get data "to")
    "cc" (get data "cc")
+   "object" data})
+
+(defmethod activity :follow [{:keys [user-id]} _ remote-user]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
+   "id" (str user-id "/follow/" (java.util.UUID/randomUUID))
+   "type" "Follow"
+   "actor" user-id
+   "to" remote-user
+   "object" remote-user})
+
+(defmethod activity :accept [{:keys [user-id]} _ data]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
+   "type" "Accept"
+   "actor" user-id
+   "to" (get data "actor")
    "object" data})
 
 (defn with-config
