@@ -1,4 +1,4 @@
-(ns clj-activitypub.internal.crypto
+(ns ^:no-doc clj-activitypub.internal.crypto
   (:require [clojure.java.io :as io])
   (:import (java.util Base64)
            (java.security MessageDigest SecureRandom Signature)))

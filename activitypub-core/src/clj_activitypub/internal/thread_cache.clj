@@ -1,4 +1,4 @@
-(ns clj-activitypub.internal.thread-cache)
+(ns ^:no-doc clj-activitypub.internal.thread-cache)
 
 (defn- current-time 
   "Returns current time using UNIX epoch."
