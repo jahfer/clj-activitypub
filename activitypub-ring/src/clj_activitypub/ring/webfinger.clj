@@ -5,8 +5,11 @@
             [compojure.core :refer [GET]]
             [ring.middleware.params :refer [wrap-params]]))
 
-(defn handler [domain request]
-  (let [resource (-> request :query-params (get "resource"))
+(defn handler [{:keys [domain user-route]
+                :or {user-route "/users/"}}
+               request]
+  (let [base-url (str "https://" domain)
+        resource (-> request :query-params (get "resource"))
         username (-> resource
                      (str/replace-first #"acct:" "")
                      webfinger/parse-handle
@@ -17,8 +20,8 @@
             {"subject" resource
              "links" [{"rel" "self"
                        "type" "application/activity+json"
-                       "href" (str "https://" domain "/users/" username)}]})}))
+                       "href" (str base-url user-route username)}]})}))
 
-(defn routes [base-domain]
+(defn routes [routing-config]
   (GET webfinger/remote-uri-path [_]
-    (wrap-params (partial handler base-domain))))
+    (wrap-params (partial handler routing-config))))

@@ -7,7 +7,7 @@
 (def example-domain "example.com")
 
 (def routes
-  (ring-webfinger/routes example-domain))
+  (ring-webfinger/routes {:domain example-domain}))
 
 (deftest handler
   (testing "/.well-known/webfinger"
