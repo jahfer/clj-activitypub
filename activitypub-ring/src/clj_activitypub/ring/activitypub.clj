@@ -9,9 +9,14 @@
    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
    :body (json/write-str (core/actor actor))})
 
-(defn inbox-handler
+(defn inbox-handler 
+   [_request]
+   {:status 202
+    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}})
+
+(defn outbox-handler
   ([request]
-   (inbox-handler request {}))
+   (outbox-handler request {}))
   ([request data]
    (let [query-string (when (:query-string request)
                         (str "?" (:query-string request)))]
@@ -25,9 +30,25 @@
                      :orderedItems []}
                     data))})))
 
-(defn outbox-handler
+(defn following-handler
   ([request]
-   (outbox-handler request {}))
+   (following-handler request {}))
+  ([request data]
+   (let [query-string (when (:query-string request)
+                        (str "?" (:query-string request)))]
+     {:status 200
+      :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+      :body (json/write-str
+             (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
+                     :id (str "https://" (:server-name request) (:uri request) query-string)
+                     :type	"OrderedCollection"
+                     :totalItems 0
+                     :orderedItems []}
+                    data))})))
+
+(defn followers-handler
+  ([request]
+   (followers-handler request {}))
   ([request data]
    (let [query-string (when (:query-string request)
                         (str "?" (:query-string request)))]
@@ -46,5 +67,7 @@
     (routes
      (POST "/inbox"    request (inbox-handler request))
      (GET "/outbox"    request (outbox-handler request))
+     (GET "/following" request (following-handler request))
+     (GET "/followers" request (followers-handler request))
      (GET "/"          request (actor-handler request (core/config {:domain domain
                                                                     :username username}))))))

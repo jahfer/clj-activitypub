@@ -11,13 +11,9 @@
 
 (deftest user
   (testing "/inbox route"
-    (is (= {:status 200
+    (is (= {:status 202
             :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-            :body (json/write-str {"@context" ["https://www.w3.org/ns/activitystreams"]
-                                   "id" "https://localhost/users/jahfer/inbox"
-                                   "type"	"OrderedCollection"
-                                   "totalItems" 0
-                                   "orderedItems" []})}
+            :body ""}
            (routes (mock/request :post "/users/jahfer/inbox")))))
   
   (testing "/outbox route"
@@ -28,14 +24,7 @@
                                    "type"	"OrderedCollection"
                                    "totalItems" 0
                                    "orderedItems" []})}
-           (routes (mock/request :get "/users/jahfer/outbox")))))
-  
-  (testing "/cards/:id route"
-    (with-redefs []
-      (is (= {:status 200
-              :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
-              :body "{}"}
-             (routes (mock/request :get "/users/jahfer/cards/1"))))))
+           (routes (mock/request :get "/users/jahfer/outbox"))))) 
   
   (testing "/ route"
     (let [user-id (str "https://" example-domain "/users/jahfer")]
@@ -44,13 +33,15 @@
               :body (json/write-str
                      {"@context" ["https://www.w3.org/ns/activitystreams"
                                   "https://w3id.org/security/v1"]
-                      "id" user-id
-                      "type" "Person"
-                      "name" "jahfer"
-                      "preferredUsername" "jahfer"
-                      "inbox" (str user-id "/inbox")
-                      "outbox" (str user-id "/outbox")
-                      "publicKey" {"id" (str user-id "#main-key")
-                                   "owner" user-id
-                                   "publicKeyPem" ""}})}
+                      :id user-id
+                      :type "Person"
+                      :name "jahfer"
+                      :preferredUsername "jahfer"
+                      :inbox (str user-id "/inbox")
+                      :outbox (str user-id "/outbox")
+                      :following (str user-id "/following")
+                      :followers (str user-id "/followers")
+                      :publicKey {:id (str user-id "#main-key")
+                                  :owner user-id
+                                  :publicKeyPem ""}})}
              (routes (mock/request :get "/users/jahfer")))))))
