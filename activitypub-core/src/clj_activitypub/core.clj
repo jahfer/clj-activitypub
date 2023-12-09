@@ -29,17 +29,17 @@
   [{:keys [user-id username name public-key]}]
   {"@context" ["https://www.w3.org/ns/activitystreams"
                "https://w3id.org/security/v1"]
-   :id user-id
-   :type "Person"
-   :name name
-   :preferredUsername username
-   :inbox (str user-id "/inbox")
-   :outbox (str user-id "/outbox")
-   :following (str user-id "/following")
-   :followers (str user-id "/followers")
-   :publicKey {:id (str user-id "#main-key")
-               :owner user-id
-               :publicKeyPem (or public-key "")}})
+  "id" user-id
+  "type" "Person"
+  "name" name
+  "preferredUsername" username
+  "inbox" (str user-id "/inbox")
+  "outbox" (str user-id "/outbox")
+  "following" (str user-id "/following")
+  "followers" (str user-id "/followers")
+  "publicKey" {"id" (str user-id "#main-key")
+               "owner" user-id
+               "publicKeyPem" (or public-key "")}})
 
 (defmulti obj
   "Produces a map representing an ActivityPub object which can be serialized
@@ -49,9 +49,10 @@
 
 (defmethod obj :note
   [{:keys [user-id]}
-   {:keys [id published inReplyTo content to cc]
+   {:keys [id published inReplyTo replies content to cc]
     :or {published (date)
          inReplyTo ""
+         replies []
          to "https://www.w3.org/ns/activitystreams#Public"
          cc []}}]
   {"id" (str user-id "/notes/" id)
@@ -59,6 +60,7 @@
    "published" published
    "attributedTo" user-id
    "inReplyTo" inReplyTo
+   "replies" replies
    "content" content
    "to" to
    "cc" cc})
@@ -78,7 +80,8 @@
    "published" (get data "published")
    "to" (get data "to")
    "cc" (get data "cc")
-   "object" data})
+   "object" (get data "object"
+                 data)})
 
 (defmethod activity :delete [{:keys [user-id]} _ data]
   {"@context" ["https://www.w3.org/ns/activitystreams"
@@ -87,7 +90,8 @@
    "actor" user-id
    "to" (get data "to")
    "cc" (get data "cc")
-   "object" data})
+   "object" (get data "object"
+                 data)})
 
 (defmethod activity :follow [{:keys [user-id]} _ remote-user]
   {"@context" ["https://www.w3.org/ns/activitystreams"

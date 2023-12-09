@@ -83,7 +83,7 @@
   [remote-id]
   (tc/fetch object-cache remote-id
             #(delay (do
-                      (println "Performing GET" remote-id)
+                      ;; (println "Performing GET" remote-id)
                       (some-> (try (client/get remote-id http/GET-config)
                                    (catch Exception _ nil))
                               (:body)
@@ -106,7 +106,7 @@
    the links will be followed until a resolved object is found. Will return
    cached results if they exist in memory."
   [str-or-obj]
-  (let [result (-> str-or-obj 
+  (let [result (-> str-or-obj
                    (lazy-resolve!)
                    (ensure-seq))]
     (letfn [(branch? [x] (or (delay? x)
@@ -149,4 +149,5 @@
          (mapcat resolve!)
          (map #(or (get-in % [:endpoints :sharedInbox])
                    (get % :inbox)))
-         (distinct))))
+         (distinct)
+         (remove nil?))))

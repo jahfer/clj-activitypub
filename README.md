@@ -98,7 +98,7 @@ $ openssl rsa -in keys/private.pem -outform PEM -pubout -out keys/public.pem
 There are two libraries within this package: `activitypub-core` and `activitypub-ring`. In order to run tests, the following command must be run from inside either of those directories:
 
 ```bash
-# clj_activitypub/activitypub_core
+# clj-activitypub/activitypub_core
 $ clj -X:test
 ```
 
