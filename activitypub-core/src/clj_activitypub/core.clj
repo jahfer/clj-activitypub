@@ -45,7 +45,8 @@
   "Produces a map representing an ActivityPub object which can be serialized
    directly to JSON in the form expected by the ActivityStreams 2.0 spec.
    See https://www.w3.org/TR/activitystreams-vocabulary/ for reference."
-  (fn [_config object-data] (:type object-data)))
+  (fn [_config object-data]
+    (:type object-data)))
 
 (defmethod obj :note
   [{:keys [user-id]}

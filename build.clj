@@ -4,6 +4,8 @@
 
 (def version (format "0.%s" (b/git-count-revs nil)))
 
+(def git-url "git@github.com:jahfer/clj-activitypub.git")
+
 (def libs [{:lib 'com.jahfer/clj-activitypub
             :src ["activitypub-core/src" "activitypub-ring/src"]
             :dir "clj-activitypub"
@@ -35,7 +37,11 @@
                      :lib lib
                      :version version
                      :basis basis
-                     :src-dirs src})
+                     :src-dirs src
+                     :scm {:tag (str "v" version)
+                           :connection (str "scm:git:" git-url)
+                           :developerConnection (str "scm:git:" git-url)
+                           :url git-url}})
        (b/copy-dir {:src-dirs src
                     :target-dir target-dir})
        (b/jar {:class-dir target-dir
