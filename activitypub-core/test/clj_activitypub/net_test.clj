@@ -10,6 +10,39 @@
 (defn mock-date []
   (str "Tue, 29 Nov 2022 12:47:08 GMT"))
 
+(deftest resolve!
+  (testing "Performs GET request, returning the response body"
+    (net/reset-object-cache!)
+    (with-fake-routes-in-isolation http-stubs
+      (let [user-id "https://example.com/users/jahfer"]
+        (is (=? [{:inbox "https://example.com/users/jahfer/inbox"
+                  :outbox "https://example.com/users/jahfer/outbox"
+                  :name "Jahfer"}]
+                (map #(select-keys % [:inbox :outbox :name])
+                     (net/resolve! user-id)))))))
+  (testing "Retrieves data from cache if exists"
+    (net/reset-object-cache!)
+    (let [user-id "https://example.com/users/jahfer"]
+      (with-fake-routes-in-isolation http-stubs
+         ;; call once with stub to cache results
+        (net/resolve! user-id))
+      (with-fake-routes-in-isolation {}
+        (net/resolve! user-id)))))
+
+(deftest authorized-resolve!
+  (testing "Performs GET request, returning the response body"
+    (net/reset-object-cache!)
+    (with-fake-routes-in-isolation http-stubs
+      (let [user-id "https://example.com/users/jahfer"
+            config (core/config {:domain "example.com"
+                                 :username "jahfer"
+                                 :private-key (slurp "../keys/test_private.pem")})]
+        (is (=? [{:inbox "https://example.com/users/jahfer/inbox"
+                  :outbox "https://example.com/users/jahfer/outbox"
+                  :name "Jahfer"}]
+                (map #(select-keys % [:inbox :outbox :name])
+                     (net/authorized-resolve! user-id config))))))))
+
 (deftest fetch-actor!
   (testing "Performs GET request, returning the response body"
     (net/reset-object-cache!)
@@ -28,24 +61,19 @@
       (with-fake-routes-in-isolation {}
         (net/fetch-actor! user-id)))))
 
-(deftest resolve!
+(deftest authorized-fetch-actor!
   (testing "Performs GET request, returning the response body"
     (net/reset-object-cache!)
     (with-fake-routes-in-isolation http-stubs
-      (let [user-id "https://example.com/users/jahfer"]
-        (is (=? [{:inbox "https://example.com/users/jahfer/inbox"
-                  :outbox "https://example.com/users/jahfer/outbox"
-                  :name "Jahfer"}]
-               (map #(select-keys % [:inbox :outbox :name])
-                    (net/resolve! user-id)))))))
-  (testing "Retrieves data from cache if exists"
-    (net/reset-object-cache!)
-    (let [user-id "https://example.com/users/jahfer"]
-      (with-fake-routes-in-isolation http-stubs
-         ;; call once with stub to cache results
-        (net/resolve! user-id))
-      (with-fake-routes-in-isolation {}
-        (net/resolve! user-id)))))
+      (let [user-id "https://example.com/users/jahfer"
+            config (core/config {:domain "example.com"
+                                 :username "jahfer"
+                                 :private-key (slurp "../keys/test_private.pem")})]
+        (is (=? {:inbox "https://example.com/users/jahfer/inbox"
+                 :outbox "https://example.com/users/jahfer/outbox"
+                 :name "Jahfer"}
+                (select-keys (net/authorized-fetch-actor! user-id config)
+                             [:inbox :outbox :name])))))))
 
 (deftest delivery-targets!)
 

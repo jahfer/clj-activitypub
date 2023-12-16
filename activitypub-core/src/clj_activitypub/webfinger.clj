@@ -29,7 +29,7 @@
 
 (defn reset-user-id-cache!
   "Removes all entries from the user-id cache, which is populated with results
-   from [[fetch-user-id]]."
+   from [[fetch-user-id!]]."
   []
   ((:reset user-id-cache)))
 

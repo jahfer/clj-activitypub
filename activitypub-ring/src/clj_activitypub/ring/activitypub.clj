@@ -4,15 +4,15 @@
             [clj-activitypub.core :as core]))
 
 (defn actor-handler
-  [_request actor] 
+  [_request actor]
   {:status 200
-   :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+   :headers {"Content-Type" "application/activity+json"}
    :body (json/write-str (core/actor actor))})
 
-(defn inbox-handler 
+(defn inbox-handler
    [_request]
    {:status 202
-    :headers {"Content-Type" "application/jrd+json; charset=utf-8"}})
+    :headers {"Content-Type" "application/activity+json"}})
 
 (defn outbox-handler
   ([request]
@@ -21,7 +21,7 @@
    (let [query-string (when (:query-string request)
                         (str "?" (:query-string request)))]
      {:status 200
-      :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+      :headers {"Content-Type" "application/activity+json"}
       :body (json/write-str
              (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
                      :id (str "https://" (:server-name request) (:uri request) query-string)
@@ -37,7 +37,7 @@
    (let [query-string (when (:query-string request)
                         (str "?" (:query-string request)))]
      {:status 200
-      :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+      :headers {"Content-Type" "application/activity+json"}
       :body (json/write-str
              (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
                      :id (str "https://" (:server-name request) (:uri request) query-string)
@@ -53,7 +53,7 @@
    (let [query-string (when (:query-string request)
                         (str "?" (:query-string request)))]
      {:status 200
-      :headers {"Content-Type" "application/jrd+json; charset=utf-8"}
+      :headers {"Content-Type" "application/activity+json"}
       :body (json/write-str
              (merge {"@context" ["https://www.w3.org/ns/activitystreams"]
                      :id (str "https://" (:server-name request) (:uri request) query-string)
