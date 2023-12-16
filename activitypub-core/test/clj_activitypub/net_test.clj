@@ -12,7 +12,7 @@
 
 (deftest resolve!
   (testing "Performs GET request, returning the response body"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"]
         (is (=? [{:inbox "https://example.com/users/jahfer/inbox"
@@ -21,7 +21,7 @@
                 (map #(select-keys % [:inbox :outbox :name])
                      (net/resolve! user-id)))))))
   (testing "Retrieves data from cache if exists"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (let [user-id "https://example.com/users/jahfer"]
       (with-fake-routes-in-isolation http-stubs
          ;; call once with stub to cache results
@@ -31,7 +31,7 @@
 
 (deftest authorized-resolve!
   (testing "Performs GET request, returning the response body"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"
             config (core/config {:domain "example.com"
@@ -45,7 +45,7 @@
 
 (deftest fetch-actor!
   (testing "Performs GET request, returning the response body"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"]
         (is (=? {:inbox "https://example.com/users/jahfer/inbox"
@@ -54,7 +54,7 @@
                 (select-keys (net/fetch-actor! user-id)
                              [:inbox :outbox :name]))))))
   (testing "Retrieves data from cache if exists"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (let [user-id "https://example.com/users/jahfer"]
       (with-fake-routes-in-isolation http-stubs
         (net/fetch-actor! user-id)) ;; call once with stub to cache results
@@ -63,7 +63,7 @@
 
 (deftest authorized-fetch-actor!
   (testing "Performs GET request, returning the response body"
-    (net/reset-object-cache!)
+    (net/reset-cache!)
     (with-fake-routes-in-isolation http-stubs
       (let [user-id "https://example.com/users/jahfer"
             config (core/config {:domain "example.com"

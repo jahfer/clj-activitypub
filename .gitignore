@@ -7,3 +7,4 @@
 *.pem
 target/
 *.pom.asc
+*.pom

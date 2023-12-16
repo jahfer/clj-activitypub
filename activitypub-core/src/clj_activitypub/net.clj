@@ -52,9 +52,8 @@
 
 (def ^:private object-cache (tc/make))
 
-(defn reset-object-cache!
-  "Removes all entries from the object cache, which is populated with results
-   from [[fetch-objects!]] or [[fetch-user!]]."
+(defn reset-cache!
+  "Removes all entries from the object cache."
   []
   (tc/reset object-cache))
 
@@ -142,7 +141,7 @@
       (remove branch? (tree-seq branch? children result)))))
 
 (defn authorized-resolve!
-  "Same as [resolve!] but with a signature header added to the request.
+  "Same as [[resolve!]] but with a signature header added to the request.
    You should expect the remote server to make a call to the actor identified
    in `config` to verify the signing key."
   [str-or-obj config]
@@ -152,7 +151,7 @@
 
 (defn fetch-actor!
   "Fetches the actor located at user-id from a remote server. If you wish to
-   retrieve a list of objects, see [[fetch-objects!]]. Will return a cached
+   retrieve a list of objects, see [[resolve!]]. Will return a cached
    result if it exists in memory."
   [user-id]
   (let [object (first (resolve! user-id))]
@@ -160,7 +159,7 @@
       object)))
 
 (defn authorized-fetch-actor!
-  "Same as [fetch-actor!] but with a signature header added to the request.
+  "Same as [[fetch-actor!]] but with a signature header added to the request.
    You should expect the remote server to make a call to the actor identified
    in `config` to verify the signing key."
   [user-id config]
