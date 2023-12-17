@@ -26,7 +26,8 @@
   (let [{:keys [user-id private-key]} config
         string-to-sign (str-for-signature headers)
         signature (crypto/base64-encode (crypto/sign string-to-sign private-key))
-        sig-header-keys {"keyId" user-id
+        sig-header-keys {"keyId" (str user-id "#main-key")
+                         "algorithm" "rsa-sha256"
                          "headers" (str/join " " signature-headers)
                          "signature" signature}]
     (->> sig-header-keys
@@ -36,16 +37,17 @@
          (apply str))))
 
 (defn auth-headers
-  "Given a config and request map of {:body ... :headers ...}, returns the
-   original set of headers with Signature and Digest attributes appended. If
-   Date is not in the original header set, it will also be appended."
-  [config {:keys [body headers] :or {headers {}}}]
+  "Given a config and request map of {:body ... :headers ... :request-target ...},
+   returns the original set of headers with Signature and Digest attributes
+   appended. If Date is not in the original header set, it will also be appended."
+  [config {:keys [body headers request-target]
+           :or {body "" headers {}}}]
   (let [digest (http/digest body)
         headers (cond-> headers
                   (not (contains? headers "Date")) (assoc "Date" (http/date)))
         headers' (-> headers
                      (assoc "Digest" digest)
-                     (assoc "(request-target)" "post /inbox"))]
+                     (assoc "(request-target)" request-target))]
     (assoc headers
            "Signature" (gen-signature-header config headers')
            "Digest" digest)))
@@ -71,7 +73,7 @@
 
 (defn- authorized? [x]
   (and (map? x)
-       (:authority x)))
+       (contains? x :authority)))
 
 (defn- authorize [x config]
   {:id x :authority config})
@@ -99,10 +101,11 @@
   [remote-id authority]
   ;; TODO: Don't cache failed request
   (tc/fetch object-cache remote-id
-            #(delay (let [headers (merge
-                                   {"Host" (.getHost (URI. remote-id))}
-                                   (:headers http/GET-config))
-                          signed-headers (auth-headers authority {:headers headers :body ""})]
+            #(delay (let [uri (URI. remote-id)
+                          headers (merge (:headers http/GET-config)
+                                         {"Host" (.getHost uri)})
+                          signed-headers (auth-headers authority {:headers headers
+                                                                  :request-target (str "get " (.getPath uri))})]
                       (some-> (try (client/get remote-id (assoc-in http/GET-config [:headers] signed-headers))
                                    (catch Exception e (println "[authorized-fetch-objects!] caught exception: " (.getMessage e))
                                           nil))
