@@ -37,6 +37,22 @@
                             "publicKeyPem" ""}}
              (core/actor config))))))
 
+(deftest instance-actor
+  (testing "instance-actor returns expected hash"
+    (let [config (core/config {:domain "example.com" :username "jahfer"})]
+      (is (=? {"@context" ["https://www.w3.org/ns/activitystreams"
+                           "https://w3id.org/security/v1"]
+               "id" "https://example.com/users/jahfer"
+               "type" "Application"
+               "url" "https://example.com/users/jahfer"
+               "preferredUsername" "instance.actor"
+               "inbox" "https://example.com/users/jahfer/inbox"
+               "outbox" "https://example.com/users/jahfer/outbox"
+               "publicKey" {"id" "https://example.com/users/jahfer#main-key"
+                            "owner" "https://example.com/users/jahfer"
+                            "publicKeyPem" ""}}
+              (core/instance-actor config))))))
+
 (deftest obj
   (testing "obj :note returns expected hash"
     (let [config (core/config {:domain "example.com" :username "jahfer"})

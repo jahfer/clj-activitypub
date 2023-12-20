@@ -8,7 +8,8 @@
   {:as :json
    :throw-exceptions true
    :ignore-unknown-host? false
-   :headers {"Accept" "application/activity+json, application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""}})
+   :headers {"User-Agent" "clj-activitypub"
+             "Accept" "application/activity+json, application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""}})
 
 (defn encode-url-params [params]
   (->> params

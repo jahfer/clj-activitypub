@@ -3,6 +3,12 @@
             [compojure.core :refer [context GET POST context routes]]
             [clj-activitypub.core :as core]))
 
+(defn instance-actor-handler
+  [_request actor]
+  {:status 200
+   :headers {"Content-Type" "application/activity+json"}
+   :body (json/write-str (core/instance-actor actor))})
+
 (defn actor-handler
   [_request actor]
   {:status 200

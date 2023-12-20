@@ -80,7 +80,8 @@
 (deftest auth-headers
   (testing "Accepts request data and returns the headers with auth attributes included"
     (let [headers {"Test" "header example"
-                   "Another" 123}
+                   "Another" 123
+                   "Host" "example.com"}
           body "Hello world!"]
       (is (=? (with-redefs [http/date mock-date]
                 (net/auth-headers
@@ -90,6 +91,7 @@
                  {:headers headers :body body :request-target "post /index"}))
               {"Test" "header example"
                "Another" 123
+               "Host" "example.com"
                "Date" (mock-date)
-               "Signature" "keyId=\"https://example.com/users/jahfer#main-key\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"wLp10mCTgQSgQlwELbh4QtWMiligbfcZv3573TLUrUJEYlWfQT+mmqGpMDZeWxGpPBU8oIK4JWThb1nqFVmGSNIkGv5RDMWhHbuEksNNNGe69q8NjHH/fMtFcrIEtAjKU7iFnOOruGqDvKDjM+L7YCs8Mo5Nph61GBRbgv5wWQKiTA1iT5CLgpjFmYaVXYWN11gfirkliCT0sbzfsSLO2WEtdLwxeY7d9kmCH81m9lqN0CQnLxT5Z/tZVKJz249eY1MlMFuaIn0wLEWMNq2gUeK2Qg99MzVShj7JtuqzSWSuYCFgYZ6nopTRAA0E1IrLEEHtm21HX9ZwdPAEotS2JQ==\""
+               "Signature" "keyId=\"https://example.com/users/jahfer#main-key\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest\",signature=\"ZXskBM4s8zICkJxBiM9r4zbW6PFsjmc31T/rYAFJm4S1VKU2Pk20LJxQT/dxdNE4dnutin+YONELSsgfM5XYBkiO+lM7u2zNglvow1io6IZ0Jy7OB00JYbRPW5BSg9hsgCMJQ62++LC+/VuCTqX/CP4P7VGyr8I0/uUuKowPn4Cfp8MKwPOKOjruTmS0mI1oP7KkWPvmL0EShiayKzmlMEK6BaknGuIRUs8Weuo7ysozeVhQ/a0yFOJX823omAiaCasHo2EpZnxo2QCSfXKPdkx6JSB1f2RldINNLmvWJjNhvTfF84kE9tKOaNW4LCPY1nHjt+yzCIMTEitWest5tw==\""
                "Digest" "sha-256=wFNeS+K3n/2TKRMFQ2v4iTFOSj+uwF7P/Lt98xrZ5Ro="})))))

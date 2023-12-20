@@ -10,25 +10,30 @@
 
 (def signature-headers ["(request-target)" "host" "date" "digest"])
 
+(defn- normalize-headers [headers]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m (str/lower-case k) v)) {} headers))
+
 (defn- str-for-signature [headers]
-  (let [headers-xf (reduce-kv
-                    (fn [m k v]
-                      (assoc m (str/lower-case k) v)) {} headers)]
-    (->> signature-headers
-         (select-keys headers-xf)
-         (reduce-kv (fn [coll k v] (conj coll (str k ": " v))) [])
-         (interpose "\n")
-         (apply str))))
+  (->> signature-headers
+       (select-keys headers)
+       (reduce-kv (fn [coll k v] (conj coll (str k ": " v))) [])
+       (interpose "\n")
+       (apply str)))
 
 (defn gen-signature-header
   "Generates a HTTP Signature string based on the provided map of headers."
   [config headers]
   (let [{:keys [user-id private-key]} config
-        string-to-sign (str-for-signature headers)
+        normalized-headers (normalize-headers headers)
+        string-to-sign (str-for-signature normalized-headers)
         signature (crypto/base64-encode (crypto/sign string-to-sign private-key))
         sig-header-keys {"keyId" (str user-id "#main-key")
                          "algorithm" "rsa-sha256"
-                         "headers" (str/join " " signature-headers)
+                         "headers" (->> signature-headers
+                                        (filter #(contains? normalized-headers %))
+                                        (str/join " "))
                          "signature" signature}]
     (->> sig-header-keys
          (reduce-kv (fn [m k v]
@@ -44,13 +49,11 @@
            :or {body "" headers {}}}]
   (let [digest (http/digest body)
         headers (cond-> headers
-                  (not (contains? headers "Date")) (assoc "Date" (http/date)))
-        headers' (-> headers
-                     (assoc "Digest" digest)
-                     (assoc "(request-target)" request-target))]
+                  (not (contains? headers "Date")) (assoc "Date" (http/date))
+                  (seq body) (assoc "Digest" digest))
+        headers' (assoc headers "(request-target)" request-target)]
     (assoc headers
-           "Signature" (gen-signature-header config headers')
-           "Digest" digest)))
+           "Signature" (gen-signature-header config headers'))))
 
 (def ^:private object-cache (tc/make))
 
@@ -81,7 +84,9 @@
 (defn- resolve-collection! [object resolve-fn]
   (let [type (:type object)]
     (condp some (if (coll? type) type [type])
-      collection-type?      (lazy-resolve! (:first object) resolve-fn)
+      collection-type?      (lazy-resolve! (or (:first object)
+                                               (:orderedItems object)
+                                               (:items object)) resolve-fn)
       collection-page-type? (let [items (or (:orderedItems object) (:items object))]
                               (cond-> []
                                 items          (concat (map #(lazy-resolve! % resolve-fn) items))
@@ -106,7 +111,10 @@
                                          {"Host" (.getHost uri)})
                           signed-headers (auth-headers authority {:headers headers
                                                                   :request-target (str "get " (.getPath uri))})]
-                      (some-> (try (client/get remote-id (assoc-in http/GET-config [:headers] signed-headers))
+                      (some-> (try (client/get remote-id
+                                               (assoc-in http/GET-config
+                                                         [:headers]
+                                                         (dissoc signed-headers "(request-target)")))
                                    (catch Exception e (println "[authorized-fetch-objects!] caught exception: " (.getMessage e))
                                           nil))
                               (:body)

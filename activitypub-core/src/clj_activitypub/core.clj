@@ -41,6 +41,23 @@
                "owner" user-id
                "publicKeyPem" (or public-key "")}})
 
+(defn instance-actor
+  "Accepts a config, and returns a map in the form expected by the ActivityPub
+   spec."
+  [{:keys [user-id public-key]}]
+  {"@context" ["https://www.w3.org/ns/activitystreams"
+               "https://w3id.org/security/v1"]
+   "id" user-id
+   "type" "Application"
+   "preferredUsername" "instance.actor"
+   "inbox" (str user-id "/inbox")
+   "outbox" (str user-id "/outbox")
+   "url" user-id
+   "manuallyApprovesFollowers" true
+   "publicKey" {"id" (str user-id "#main-key")
+                "owner" user-id
+                "publicKeyPem" (or public-key "")}})
+
 (defmulti obj
   "Produces a map representing an ActivityPub object which can be serialized
    directly to JSON in the form expected by the ActivityStreams 2.0 spec.
